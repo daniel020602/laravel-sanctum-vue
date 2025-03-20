@@ -3,14 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\UpdatePostRequest;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 
-class PostController extends Controller implements HasMiddleware
+class PostController extends Controller
 {
+    /**
+     * PostController constructor.
+     */
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->except(['index', 'show']);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -26,7 +34,7 @@ class PostController extends Controller implements HasMiddleware
     {
         $fields = $request->validate([
             'title' => 'required|max:255',
-            'body' => 'required'
+            'body' => 'required',
         ]);
         $post = $request->user()->posts()->create($fields);
         return ['post' => $post];
@@ -47,7 +55,7 @@ class PostController extends Controller implements HasMiddleware
     {
         $fields = $request->validate([
             'title' => 'required|max:255',
-            'body' => 'required'
+            'body' => 'required',
         ]);
         $post->update($fields);
 
