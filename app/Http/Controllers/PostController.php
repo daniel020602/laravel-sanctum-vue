@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 
 class PostController extends Controller
@@ -53,6 +54,7 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        Gate::authorize('modify', $post);
         $fields = $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
@@ -67,6 +69,7 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        Gate::authorize('modify', $post);
         $post->delete();
         return ['message' => 'Post deleted'];
     }
