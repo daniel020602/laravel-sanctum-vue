@@ -3,7 +3,7 @@ export const useAuthStore = defineStore('authStore', {
     state:()=>{
         return {
             user: null,
-            token: null
+            errors:{}
         }
     },
     actions:{
@@ -13,7 +13,15 @@ export const useAuthStore = defineStore('authStore', {
                 body: JSON.stringify(formData)
             })
             const data = await res.json()
-            console.log(data)
+            if (data.errors)
+            {
+                this.errors=data.errors    
+            } else {
+                localStorage.setItem('token', data.token)
+                this.user = data.user
+                
+            }
+
         }
     }
 });
