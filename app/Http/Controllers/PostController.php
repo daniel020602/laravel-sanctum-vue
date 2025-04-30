@@ -25,7 +25,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        return Post::all();
+        return Post::with('user')->latest()->get();
     }
 
     /**
@@ -38,7 +38,7 @@ class PostController extends Controller
             'body' => 'required',
         ]);
         $post = $request->user()->posts()->create($fields);
-        return ['post' => $post];
+        return ['post' => $post, 'user' => $post->user];
     }
 
     /**
@@ -46,7 +46,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        return ['post' => $post];
+        return ['post' => $post, 'user' => $post->user];
     }
 
     /**

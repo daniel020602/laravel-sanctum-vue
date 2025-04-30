@@ -4,6 +4,7 @@ import RegisterView from '../views/auth/Registerview.vue'
 import LoginView from '../views/auth/LoginView.vue'
 import { useAuthStore } from '../stores/auth.js'
 import CreateView from '../views/posts/CreateView.vue'
+import PostView from '../views/posts/PostView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,7 +32,13 @@ const router = createRouter({
       name: 'create',
       component: CreateView,
       meta:{auth:true}
+    },
+    {
+    path: '/posts/:id',
+    name: 'post',
+    component: PostView,
     }
+
 
   ],
 })
