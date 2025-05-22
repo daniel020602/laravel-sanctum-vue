@@ -1,37 +1,54 @@
-<template>
-    <main>
-      <div v-if="Post" >
-        <div class="border p-4 rounded">
-          <h2 class="text-xl font-bold">{{ Post.post.title }}</h2>
-          <p>{{ Post.post.body }}
-          </p>
-          <div v-if="Post.post.user.id === authStore.user.id" class="flex justify-between mt-4">
-            <form @submit.prevent="Post.deletePost(postId)">
-                <button>delete</button>
-            </form>
-          </div>
-        </div>
-
-      </div>
-      <div v-else>
-        <p class="text-xl">nincs bejegyzés</p>
-      </div>
-    </main>
-</template>
-
 <script setup>
-import { onMounted } from 'vue';
-import { usePostsStore } from '@/stores/posts';
-import { useRoute } from 'vue-router';
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-const {getPost} = usePostsStore();
-const authStore = useAuthStore()
-const route = useRoute()
-const postId = route.params.id;
-const Post = ref(null);
-onMounted(async() => {
-    Post.value= await getPost(postId)
-    console.log(authStore.user)
-})
+  import { usePostsStore } from '@/stores/posts'
+  import { useAuthStore } from '@/stores/auth';
+  import { onMounted, ref } from 'vue';
+  import { RouterLink, useRoute } from 'vue-router';
+
+  const route = useRoute()
+  const {getPost, deletePost} = usePostsStore()
+  const authStore = useAuthStore()
+  const post = ref(null)
+  onMounted(async () => {
+    post.value = await getPost(route.params.id)
+    console.log(post.value)
+  })
 </script>
+
+<template>
+  <main>
+    <div v-if="post">
+      <div class="border-l-4 border-blue-500 pl-4 mt-12">
+        <h2 class="font-bold text-3xl">{{ post.title }}</h2>
+        <p class="text-xs text-slate-600 mb-4">
+          Posted by {{ post.user.name }}
+        </p>
+        <p>
+          {{ post.body }}
+        </p>
+        <div
+          v-if="authStore.user && authStore.user.id === post.user_id"
+          class="flex items-center gap-6 mt-6"
+        >
+          <form @submit.prevent="deletePost(post)">
+            <button
+              class="text-red-500 font-bold px-2 py-1 border border-red-300"
+            >
+              Delete
+            </button>
+          </form>
+          <RouterLink
+            :to="{ name: 'update', params: { id: post.id } }"
+            class="text-green-500 font-bold px-2 py-1 border border-blue-300"
+          >
+            Edit
+          </RouterLink>
+          
+        </div>
+      </div>
+    </div>
+    <div v-else class="flex justify-center items-center h-screen">
+      <p class="text-2xl">no post found</p>
+    </div>
+    </main>
+
+</template>

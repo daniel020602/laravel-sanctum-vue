@@ -18,8 +18,7 @@ export const usePostsStore = defineStore('postsStore', {
         async getPost(id){
             const res= await fetch('/api/posts/' + id)
             const data = await res.json()
-            console.log(data)
-            return data
+            return data.post
         },
         async createPost(formData){
             const res= await fetch('/api/posts', {
@@ -56,7 +55,26 @@ export const usePostsStore = defineStore('postsStore', {
             }
         }
 
+    },
+        async updatePost(post, formData){
+            const authStore = useAuthStore()
+            if(authStore.user.id=== post.user_id){ 
+
+            const res= await fetch('/api/posts/' + post.id, {
+                method: 'PUT',
+                headers: {
+                    Authorization: 'Bearer ' + localStorage.getItem('token'),
+                },
+                body: JSON.stringify(formData),
+            })
+            const data = await res.json()
+            if(data.errors) {
+                this.errors = data.errors
+            } else{
+                this.router.push({name:'home'})
+            }
+        }
     }
-    }
+}
 }
 )

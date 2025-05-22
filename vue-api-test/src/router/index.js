@@ -5,6 +5,7 @@ import LoginView from '../views/auth/LoginView.vue'
 import { useAuthStore } from '../stores/auth.js'
 import CreateView from '../views/posts/CreateView.vue'
 import PostView from '../views/posts/PostView.vue'
+import UpdateView from '@/views/posts/UpdateView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -37,8 +38,13 @@ const router = createRouter({
     path: '/posts/:id',
     name: 'post',
     component: PostView,
-    }
-
+    },
+    {
+      path: '/posts/update/:id/',
+      name: 'update',
+      component: UpdateView,
+      meta:{auth:true}
+    },
 
   ],
 })
@@ -54,5 +60,6 @@ router.beforeEach(async (to, from) =>
   {
     return {name:'login'}
   }
+
 })
 export default router
