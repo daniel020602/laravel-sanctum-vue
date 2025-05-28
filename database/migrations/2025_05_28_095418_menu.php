@@ -11,15 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_subs', function (Blueprint $table) {
+        Schema::create('menus', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->integer('week');
-            $table->char('day1');
-            $table->char('day2');
-            $table->char('day3');
-            $table->char('day4');
-            $table->char('day5');
+            $table->string('name');
+            $table->enum('type', ['soup', 'main', 'dessert'])->default('main');
             $table->timestamps();
         });
     }
@@ -29,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_subs');
+        Schema::dropIfExists('menus');
     }
 };

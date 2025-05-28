@@ -51,4 +51,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class);
     }
+    public function userSubs()
+    {
+        return $this->hasMany(userSub::class);
+    }
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
+    }
 }

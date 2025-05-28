@@ -4,7 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\userSubController;
+use App\Http\Controllers\SubsController;
+use App\Http\Controllers\WeeksController;
+use App\Http\Controllers\MenuController;
+
 
 
 Route::get('/user', function (Request $request) {
@@ -16,5 +19,6 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
-Route::post('/userSub', [userSubController::class, 'createUserSelection']);
-Route::post('/weeklyMenu', [userSubController::class, 'createWeeklyMenu']);
+Route::apiResource('subs', SubsController::class);
+Route::apiResource('weeks', WeeksController::class);
+Route::apiResource('menus', MenuController::class);
