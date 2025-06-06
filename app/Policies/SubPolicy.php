@@ -1,17 +1,23 @@
 <?php
 
 namespace App\Policies;
-use Illuminate\Auth\Access\Response;
-use App\Models\Sub;
+
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class SubPolicy
 {
-    public function modify(User $user, Sub $sub): Response
+    /**
+     * Determine if the user can store a new Sub.
+     */
+    public function store(User $user): Response
     {
-        if ($user->id === $sub->user_id|| $user->isAdmin()) {
+        // Allow if user is an admin
+        if ($user->is_admin) {
             return Response::allow();
         }
-        return Response::deny('You do not own this subscription.');
+
+        // Deny otherwise
+        return Response::deny('You do not have permission to create a sub.');
     }
 }
