@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Post;
+use App\Models\Sub;
 
 class User extends Authenticatable
 {
@@ -51,9 +52,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class);
     }
-    public function userSubs()
+    public function subs()
     {
-        return $this->hasMany(userSub::class);
+        return $this->hasMany(Sub::class);
     }
     public function isAdmin(): bool
     {
