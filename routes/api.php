@@ -7,7 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SubsController;
 use App\Http\Controllers\WeeksController;
 use App\Http\Controllers\MenuController;
-
+use App\Http\Controllers\ReservationController;
 
 
 Route::get('/user', function (Request $request) {
@@ -22,3 +22,4 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::apiResource('subs', SubsController::class);
 Route::apiResource('weeks', WeeksController::class);
 Route::apiResource('menus', MenuController::class);
+Route::apiResource('reservations', ReservationController::class);
