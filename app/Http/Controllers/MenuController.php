@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\MenuRequest;
+use App\Mail\ReservationCode;
 use App\Models\Menu;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class MenuController extends Controller
 {
@@ -18,7 +20,9 @@ class MenuController extends Controller
     }
     public function index()
     {
+        Mail::to('asd@asd.com')->send(new ReservationCode());
         return Menu::all();
+        
     }
     public function store(MenuRequest $request)
     {
