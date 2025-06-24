@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('phone')->unique(); 
             $table->date('date');
             $table->time('time'); 
+            $table->boolean('is_confirmed')->default(false); // Confirmation status
             $table->foreignId('table_id')->constrained('tables'); // Foreign key to tables
             $table->timestamps();
         });
