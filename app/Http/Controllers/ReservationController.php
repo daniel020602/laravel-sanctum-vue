@@ -7,9 +7,16 @@ use Illuminate\Http\Request;
 use App\Models\Reservation; // Assuming you have a Reservation model
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str; // For generating random strings
+use App\Models\OldReservation; // Assuming you have an OldReservation model
+use Termwind\Components\Ol;
+use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->except(['index', 'store','confirm','update','show','delete']); // Allow unauthenticated users to view and create reservations
+    }
     /**
      * Display a listing of the resource.
      */
@@ -66,7 +73,7 @@ class ReservationController extends Controller
 
             return response()->json([
                 'message' => 'Reservation confirmed successfully',
-                'reservation' => $reservation
+                'reservation' => $reservation->all(),
             ], 200);
         } else {
             return response()->json([
@@ -74,5 +81,22 @@ class ReservationController extends Controller
             ], 400);
            
         }
+    }
+    public function complete(Reservation $reservation)
+    {
+
+        $data = [];
+        $data['name'] = $reservation->name;
+        $data['email'] = $reservation->email;
+        $data['phone'] = $reservation->phone;
+        $data['date'] = $reservation->date;
+        $data['time'] = $reservation->time;
+        $data['table_id'] = $reservation->table_id;
+        OldReservation::create($data); // Save the reservation to OldReservation model
+        $reservation->delete(); // Delete the reservation from the Reservation model
+        return response()->json([
+            'message' => 'Reservation completed successfully',
+            'reservation' => $reservation
+        ], 200);
     }
 }

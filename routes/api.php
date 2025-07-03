@@ -24,3 +24,4 @@ Route::apiResource('weeks', WeeksController::class);
 Route::apiResource('menus', MenuController::class);
 Route::apiResource('reservations', ReservationController::class);
 Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm']);
+Route::post('/reservations/{reservation}/complete', [ReservationController::class, 'complete']);
