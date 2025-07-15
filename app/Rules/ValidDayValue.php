@@ -5,7 +5,7 @@ namespace App\Rules;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
-class ValidDayValue implements Rule
+class ValidDayValue
 {
     protected string $day;
 
@@ -17,9 +17,9 @@ class ValidDayValue implements Rule
     public function passes($attribute, $value): bool
     {
         return DB::table('weeks')
-            ->where("{$this->day}a", $value)
-            ->orWhere("{$this->day}b", $value)
-            ->orWhere("{$this->day}c", $value)
+            ->where($this->day . 'a', $value)
+            ->orWhere($this->day . 'b', $value)
+            ->orWhere($this->day . 'c', $value)
             ->exists();
     }
 

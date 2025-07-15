@@ -10,19 +10,10 @@ use Illuminate\Support\Str; // For generating random strings
 use App\Models\OldReservation; // Assuming you have an OldReservation model
 use Illuminate\Support\Facades\Auth; // Import the Auth facade
 use Illuminate\Support\Facades\Log; // For logging
+use App\Http\Requests\ReservationRequest; // Assuming you have a ReservationRequest for validation
 
 class ReservationController extends Controller
 {
-    public function __construct()
-    {
-        // The 'confirm' method requires authentication.
-        // The 'show' method does NOT require authentication by default,
-        // as it can be accessed via reservation code.
-        // If you want 'show' to also require authentication for admin access,
-        // you would add it here: $this->middleware('auth')->only(['confirm', 'show']);
-        $this->middleware('auth:sanctum');
-    }
-
     /**
      * Display a listing of the resource.
      */
@@ -30,23 +21,19 @@ class ReservationController extends Controller
     {
         return response()->json([
             'message' => 'List of reservations',
-            'reservations' => Reservation::all()
+            'reservations' => Reservation::select('date', 'time', 'table_id')->get()
         ], 200);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ReservationRequest $request)
     {
-        $data = $request->all();
+        $data = $request->validated();
         $ResCode = Str::random(10); // Use Str::random() directly
         $data['reservation_code'] = $ResCode; // Generate a random reservation code
-
-        // Ensure you have a Mail facade setup and a Mail class for ReservationCode
-        // Example: php artisan make:mail ReservationCode --markdown=emails.reservation-code
-        // And in emails/reservation-code.blade.php, you can display the code.
-        Mail::to($data['email'])->send(new \App\Mail\ReservationCode($data['reservation_code'])); // Send the reservation code via email
+        //Mail::to($data['email'])->send(new \App\Mail\ReservationCode($data['reservation_code'])); // Send the reservation code via email
 
         $reservation = Reservation::create($data);
         return response()->json([
@@ -60,31 +47,16 @@ class ReservationController extends Controller
      */
     public function show(string $id, Request $request)
     {
-        try {
-            $reservation = Reservation::find($id);
+        $reservation = Reservation::where('reservation_code', $id)->first();
 
-            if (!$reservation) {
-                return response()->json([
-                    'message' => 'Reservation not found'
-                ], 404);
-            }
-
-            $user = Auth::user();
-            $code = $request->input('reservation_code');
-
-            if (($user && $user->is_admin) || ($code && $code === $reservation->reservation_code)) {
-                return response()->json([
-                    'message' => 'Reservation details',
-                    'reservation' => $reservation
-                ], 200);
-            }
-
-            return response()->json([
-                'message' => 'Unauthorized access to reservation details'
-            ], 403);
-        } catch (\Throwable $e) {
-            echo "na itt a kert";
+        if (!$reservation) {
+            return response()->json(['message' => 'Reservation not found'], 404);
         }
+
+        // Optionally, you can log the access for auditing purposes
+        Log::info('Reservation accessed', ['reservation_id' => $reservation->id, 'user_id' => Auth::id()]);
+
+        return response()->json($reservation);
     }
 
 
@@ -92,12 +64,11 @@ class ReservationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ReservationRequest $request, string $id)
     {
-        // Implementation for updating a reservation.
-        // You would typically add authorization checks here as well.
-        // For example, only admins or the user who made the reservation (if linked) can update.
-        return response()->json(['message' => 'Update method not implemented'], 501);
+        $reservation = Reservation::findOrFail($id);
+        $reservation->update($request->validated());
+        return response()->json($reservation);
     }
 
     /**
@@ -105,9 +76,9 @@ class ReservationController extends Controller
      */
     public function destroy(string $id)
     {
-        // Implementation for deleting a reservation.
-        // Again, authorization checks are crucial here.
-        return response()->json(['message' => 'Destroy method not implemented'], 501);
+        $reservation = Reservation::findOrFail($id);
+        $reservation->delete();
+        return response()->json(null, 204);
     }
 
     /**
@@ -135,25 +106,5 @@ class ReservationController extends Controller
     /**
      * Marks a reservation as complete and moves it to OldReservation.
      */
-    public function complete(Reservation $reservation)
-    {
-        $data = [];
-        $data['name'] = $reservation->name;
-        $data['email'] = $reservation->email;
-        $data['phone'] = $reservation->phone;
-        $data['date'] = $reservation->date;
-        $data['time'] = $reservation->time;
-        $data['table_id'] = $reservation->table_id;
-
-        // Create a new OldReservation record
-        OldReservation::create($data);
-
-        // Delete the reservation from the current Reservation model
-        $reservation->delete();
-
-        return response()->json([
-            'message' => 'Reservation completed successfully',
-            'reservation' => $reservation // The reservation object before deletion
-        ], 200);
-    }
+    
 }

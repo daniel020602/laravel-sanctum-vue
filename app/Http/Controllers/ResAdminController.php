@@ -4,15 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Reservation;
+use Illuminate\Support\Facades\Auth; // Import the Auth facade
+use Illuminate\Support\Facades\Gate; // For logging
+use App\Models\OldReservation; // Assuming you have an OldReservation model
+
 
 class ResAdminController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
     public function index()
     {
-        //
+        Gate::authorize('admin', Auth::user());
+        $reservations = Reservation::all();
+        return response()->json($reservations);
     }
 
     /**
@@ -20,7 +28,8 @@ class ResAdminController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $reservation = Reservation::create($request->all());
+        return response()->json($reservation, 201);
     }
 
     /**
@@ -28,7 +37,8 @@ class ResAdminController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $reservation = Reservation::findOrFail($id);
+        return response()->json($reservation);
     }
 
     /**
@@ -36,7 +46,9 @@ class ResAdminController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $reservation = Reservation::findOrFail($id);
+        $reservation->update($request->all());
+        return response()->json($reservation);
     }
 
     /**
@@ -44,6 +56,29 @@ class ResAdminController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $reservation = Reservation::findOrFail($id);
+        $reservation->delete();
+        return response()->json(null, 204);
+    }
+    public function complete(Reservation $reservation)
+    {
+        $data = [];
+        $data['name'] = $reservation->name;
+        $data['email'] = $reservation->email;
+        $data['phone'] = $reservation->phone;
+        $data['date'] = $reservation->date;
+        $data['time'] = $reservation->time;
+        $data['table_id'] = $reservation->table_id;
+
+        // Create a new OldReservation record
+        OldReservation::create($data);
+
+        // Delete the reservation from the current Reservation model
+        $reservation->delete();
+
+        return response()->json([
+            'message' => 'Reservation completed successfully',
+            'reservation' => $reservation // The reservation object before deletion
+        ], 200);
     }
 }
