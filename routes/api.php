@@ -9,6 +9,7 @@ use App\Http\Controllers\WeeksController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ResAdminController;
+use App\Http\Controllers\OrderController;
 
 
 Route::get('/user', function (Request $request) {
@@ -27,4 +28,5 @@ Route::apiResource('reservations', ReservationController::class);
 Route::apiResource('res-admin', ResAdminController::class);
 Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm']);
 Route::post('/res-admin/{reservation}/complete', [ResAdminController::class, 'complete']);
+Route::apiResource('orders', OrderController::class);
 

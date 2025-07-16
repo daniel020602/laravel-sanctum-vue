@@ -20,6 +20,10 @@ Artisan::command('bible', function () {
 
 Artisan::command('krubi', function () {
     $this->comment("Életet és pénzt is, a kezeket fel\n".
-"Villognak a fények, ropog a fegyver\n".
-"Jól látod megérkezett a PHP artyzán így többé félnetek soha nem kell\n");
+        "Villognak a fények, ropog a fegyver\n".
+        "Jól látod megérkezett a PHP artyzán így többé félnetek soha nem kell: ");
+    $this->info("http://localhost:8000\n");
+    // Run the php artisan serve command
+    shell_exec('php artisan serve');
+    
 })->purpose("xd");
