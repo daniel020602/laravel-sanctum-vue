@@ -34,6 +34,9 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+        if($request->has('status')) {
+            return response()->json(['message' => 'Status cannot be set during order creation.'], 400);
+        }
         $items = $request->input('items');
         $price = 0;
         // Calculate total price first
@@ -79,10 +82,39 @@ class OrderController extends Controller
     public function update(Request $request, string $id)
     {
         $order = Order::findOrFail($id);
+        $this->authorize('ownerOrAdmin', $order);
+        if ($request->has('status')) {
+            return response()->json(['message' => 'Status cannot be updated directly.'], 403);
+        }
         if($order->status === 'completed' or $order->status === 'prepared' or $order->status === 'delivery') {
             return response()->json(['message' => 'Cannot update order.'], 403);
         }
-        $order->update($request->all());
+
+        // Update order fields except status
+        $order->update($request->except('status', 'items'));
+
+        // If items are provided, update order_products
+        if ($request->has('items')) {
+            $items = $request->input('items');
+            $price = 0;
+            // Remove old products for this order
+            OrderProducts::where('order_id', $order->id)->delete();
+            // Add new products
+            foreach ($items as $item) {
+                $product = Menu::findOrFail($item['id']);
+                $price += $product->price * $item['quantity'];
+                OrderProducts::create([
+                    'order_id' => $order->id,
+                    'menu_id' => $item['id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $product->price,
+                ]);
+            }
+            // Update total price
+            $order->update(['total_amount' => $price]);
+        }
+
+        return response()->json($order);
     }
 
     /**
@@ -91,10 +123,15 @@ class OrderController extends Controller
     public function destroy(string $id)
     {
         $order = Order::findOrFail($id);
-        if($order->status === 'completed' or $order->status === 'prepared' or $order->status === 'delivery') {
+        echo "Deleting order with ID: $id\n", Auth::user()->id;
+        $this->authorize('ownerOrAdmin', $order);
+        if($order->status === 'completed' or $order->status === 'prepared' or $order->status === 'delivery' or $order->status === 'cancelled') {
             return response()->json(['message' => 'Cannot delete order.'], 403);
         }
-        $order->delete();
+        $order->status = 'cancelled'; // Soft delete by changing status
+        $order->save();
+        OrderProducts::where('order_id', $id)->delete(); // Remove associated products
+        return response()->json(['message' => 'Order cancelled successfully.'], 200);
     }
     public function status(Request $request, string $id)
     {
@@ -102,6 +139,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->status = $request->input('status');
         $order->save();
+
     }
     
 }

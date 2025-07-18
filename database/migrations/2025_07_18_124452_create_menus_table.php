@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tables', function (Blueprint $table) {
+        Schema::create('menus', function (Blueprint $table) {
             $table->id();
-            $table->integer('capacity'); // Number of people the table can accommodate
+            $table->string('name');
+            $table->enum('type', ['soup', 'main', 'dessert'])->default('main');
+            $table->decimal('price', 8, 2)->default(0); // Price of the menu item
             $table->timestamps();
         });
     }
@@ -23,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('menus');
     }
 };

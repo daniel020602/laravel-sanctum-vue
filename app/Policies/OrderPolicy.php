@@ -18,6 +18,8 @@ class OrderPolicy
     }
     public function ownerOrAdmin(User $user, $order)
     {
+
+        echo $user->id . ' ' . $order->user_id;
         return $user->id === $order->user_id || $user->is_admin
             ? Response::allow()
             : Response::deny('You do not own this order.');

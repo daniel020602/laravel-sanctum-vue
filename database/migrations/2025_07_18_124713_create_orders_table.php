@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('status')->default('pending'); // e.g., pending, completed, cancelled
+            $table->enum('status', ['pending','delivery','prepared', 'completed', 'cancelled'])->default('pending');
             $table->decimal('total_amount', 10, 2); // Total amount for the order
             $table->timestamps();
         });
@@ -26,6 +26,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('orders');
+        // Note: If you want to keep the order history, you might not want to drop this table.
+        // Instead, consider implementing a soft delete or archiving strategy.
     }
 };
