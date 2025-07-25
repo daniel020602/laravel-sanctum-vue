@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class OrderRequest extends FormRequest
 {
@@ -11,7 +12,8 @@ class OrderRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // Allow only authenticated users
+        return Auth::check();
     }
 
     /**
@@ -22,7 +24,9 @@ class OrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer', 'exists:menus,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
         ];
     }
 }

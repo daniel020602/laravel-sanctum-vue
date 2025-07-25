@@ -20,7 +20,7 @@ class MenuController extends Controller
     }
     public function index()
     {
-        Mail::to('asd@asd.com')->send(new ReservationCode());
+        //Mail::to('asd@asd.com')->send(new ReservationCode());
         return Menu::all();
         
     }

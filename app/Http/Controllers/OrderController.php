@@ -9,6 +9,7 @@ use App\Models\OrderProducts; // Assuming you have an OrderProducts model
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Menu;
+use App\Http\Requests\OrderRequest; // Assuming you have an OrderRequest for validation
 
 class OrderController extends Controller
 {
@@ -32,7 +33,7 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(OrderRequest $request)
     {
         if($request->has('status')) {
             return response()->json(['message' => 'Status cannot be set during order creation.'], 400);
@@ -79,7 +80,7 @@ class OrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(OrderRequest $request, string $id)
     {
         $order = Order::findOrFail($id);
         $this->authorize('ownerOrAdmin', $order);
@@ -91,7 +92,7 @@ class OrderController extends Controller
         }
 
         // Update order fields except status
-        $order->update($request->except('status', 'items'));
+       $order->update($request->except('status'));
 
         // If items are provided, update order_products
         if ($request->has('items')) {
