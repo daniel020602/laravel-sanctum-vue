@@ -120,10 +120,41 @@ class WeeksControllerTest extends TestCase
     public function test_non_admin_cannot_update_week()
     {
         $user = User::factory()->create(['is_admin' => false]);
-        $week = Week::factory()->create();
+        $menuIds = Menu::factory()->count(3)->create(['type' => 'main'])->pluck('id')->toArray();
+        $soup = Menu::factory()->create(['type' => 'soup'])->id;
+
+        // Create the original week
+        $week = Week::factory()->create([
+            'week' => 30,
+            'soup' => $soup,
+            'day1a' => $menuIds[1],
+            'day1b' => $menuIds[2],
+            'day2a' => $menuIds[0],
+            'day2b' => $menuIds[1],
+            'day3a' => $menuIds[2],
+            'day3b' => $menuIds[0],
+            'day4a' => $menuIds[1],
+            'day4b' => $menuIds[2],
+            'day5a' => $menuIds[2],
+            'day5b' => $menuIds[1],
+        ]);
+
         $this->actingAs($user, 'sanctum');
 
-        $response = $this->putJson("/api/weeks/{$week->id}", ['week' => 31]);
+        $response = $this->putJson("/api/weeks/{$week->id}", [
+            'week' => 31,
+            'soup' => $soup,
+            'day1a' => $menuIds[1],
+            'day1b' => $menuIds[2],
+            'day2a' => $menuIds[0],
+            'day2b' => $menuIds[1],
+            'day3a' => $menuIds[2],
+            'day3b' => $menuIds[0],
+            'day4a' => $menuIds[1],
+            'day4b' => $menuIds[2],
+            'day5a' => $menuIds[2],
+            'day5b' => $menuIds[1],
+        ]);
         $response->assertStatus(403);
     }
 
@@ -141,7 +172,24 @@ class WeeksControllerTest extends TestCase
     public function test_non_admin_cannot_delete_week()
     {
         $user = User::factory()->create(['is_admin' => false]);
-        $week = Week::factory()->create();
+        $menuIds = Menu::factory()->count(3)->create(['type' => 'main'])->pluck('id')->toArray();
+        $soup = Menu::factory()->create(['type' => 'soup'])->id;
+
+        // Create the original week
+        $week = Week::factory()->create([
+            'week' => 30,
+            'soup' => $soup,
+            'day1a' => $menuIds[1],
+            'day1b' => $menuIds[2],
+            'day2a' => $menuIds[0],
+            'day2b' => $menuIds[1],
+            'day3a' => $menuIds[2],
+            'day3b' => $menuIds[0],
+            'day4a' => $menuIds[1],
+            'day4b' => $menuIds[2],
+            'day5a' => $menuIds[2],
+            'day5b' => $menuIds[1],
+        ]);
         $this->actingAs($user, 'sanctum');
 
         $response = $this->deleteJson("/api/weeks/{$week->id}");

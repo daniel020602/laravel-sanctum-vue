@@ -2,10 +2,11 @@
 
 namespace App\Rules;
 
-use Illuminate\Contracts\Validation\Rule;
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\DB;
 
-class ValidDayValue
+class ValidDayValue implements ValidationRule
 {
     protected string $day;
 
@@ -14,17 +15,20 @@ class ValidDayValue
         $this->day = $day;
     }
 
-    public function passes($attribute, $value): bool
+    public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        return DB::table('weeks')
+        $exists = DB::table('weeks')
             ->where($this->day . 'a', $value)
             ->orWhere($this->day . 'b', $value)
             ->orWhere($this->day . 'c', $value)
             ->exists();
-    }
 
-    public function message(): string
+        if (! $exists) {
+            $fail('The selected value for :attribute is invalid.');
+        }
+    }
+    public function __toString(): string
     {
-        return 'The selected value for :attribute is invalid.';
+        return "ValidDayValue for {$this->day}";
     }
 }

@@ -10,7 +10,7 @@ use App\Models\Week;
 class Sub extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'week','day1','day2','day3','day4','day5'];
+    protected $fillable = ['user_id', 'week_id','day1','day2','day3','day4','day5'];
 
     public function user()
     {

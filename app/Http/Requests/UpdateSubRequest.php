@@ -24,7 +24,7 @@ class UpdateSubRequest extends FormRequest
         ];
 
         if ($this->user()->is_admin) {
-            $rules['week'] = [
+            $rules['week_id'] = [
                 'required',
                 'integer',
                 'exists:weeks,id',
@@ -34,7 +34,7 @@ class UpdateSubRequest extends FormRequest
             ];
         } else {
             // Prevent regular users from changing the week
-            $rules['week'] = ['prohibited'];
+            $rules['week_id'] = ['prohibited'];
         }
 
         return $rules;
