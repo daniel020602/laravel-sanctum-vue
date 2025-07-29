@@ -17,6 +17,7 @@ class StoreSubRequest extends FormRequest
 
     public function rules(): array
     {
+        $weekId = $this->input('week_id');
         $rules = [
             'week_id' => [
                 'required',
@@ -24,11 +25,11 @@ class StoreSubRequest extends FormRequest
                 'integer',
                 Rule::unique('subs')->where(fn($query) => $query->where('user_id', $this->user()->id)),
             ],
-            'day1' => ['nullable', 'integer', new ValidDayValue('day1')],
-            'day2' => ['nullable', 'integer', new ValidDayValue('day2')],
-            'day3' => ['nullable', 'integer', new ValidDayValue('day3')],
-            'day4' => ['nullable', 'integer', new ValidDayValue('day4')],
-            'day5' => ['nullable', 'integer', new ValidDayValue('day5')],
+            'day1' => ['nullable', 'integer', new ValidDayValue('day1', $weekId)],
+            'day2' => ['nullable', 'integer', new ValidDayValue('day2', $weekId)],
+            'day3' => ['nullable', 'integer', new ValidDayValue('day3', $weekId)],
+            'day4' => ['nullable', 'integer', new ValidDayValue('day4', $weekId)],
+            'day5' => ['nullable', 'integer', new ValidDayValue('day5', $weekId)],
         ];
 
         Log::debug('SubRequest rules:', $rules); // 👈 log the rules

@@ -15,7 +15,7 @@ class SubFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'week' => function() {
+            'week_id' => function() {
                 $week = Week::factory()->create();
                 // For each day, pick one of the available menu IDs (a, b, or c)
                 $pick = function($a, $b, $c) {

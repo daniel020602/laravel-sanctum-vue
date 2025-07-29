@@ -31,7 +31,7 @@ class SubPolicy
         // Load the related Week model
         // Assuming Sub model has a belongsTo relationship with Week model,
         // you can access it directly as a dynamic property.
-        $weekModel = $sub->week; // Access the related Week model directly
+        $weekModel = $sub->week_id; // Access the related Week model directly
 
         // If the week does not exist, deny
         if (!$weekModel) {
@@ -49,7 +49,7 @@ class SubPolicy
         // Allow if user owns the sub AND the week is current or future
         if (
             $user->id == $sub->user_id &&
-            $weekOfSub->week > $currentWeek
+            $weekOfSub->week >= $currentWeek
         ) {
             return Response::allow();
         }
