@@ -10,6 +10,8 @@ use App\Policies\MenuPolicy;
 use App\Policies\SubPolicy;
 use App\Policies\OrderPolicy;
 use App\Models\Order;
+use App\Policies\TablePolicy;
+use App\Models\Table;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Menu::class, MenuPolicy::class);
         Gate::define('ownerOrAdmin', [OrderPolicy::class, 'ownerOrAdmin']);
         Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(Table::class, TablePolicy::class);
     }
     
 }
