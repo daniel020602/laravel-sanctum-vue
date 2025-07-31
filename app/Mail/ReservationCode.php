@@ -18,9 +18,11 @@ class ReservationCode extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public $reservation_code;
+
+    public function __construct($reservation_code)
     {
-        //
+        $this->reservation_code = $reservation_code;
     }
 
     /**
@@ -40,7 +42,10 @@ class ReservationCode extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'welcome',
+            view: 'mail',
+            with: [
+                'reservation_code' => $this->reservation_code,
+            ],
         );
     }
 

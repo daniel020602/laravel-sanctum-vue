@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\Reservation; // Assuming you have a Reservation model
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str; // For generating random strings
-use App\Models\OldReservation; // Assuming you have an OldReservation model
 use Illuminate\Support\Facades\Auth; // Import the Auth facade
 use Illuminate\Support\Facades\Log; // For logging
 use App\Http\Requests\ReservationRequest; // Assuming you have a ReservationRequest for validation
+use App\Mail\ReservationCode; // Assuming you have a ReservationCode Mailable
 
 class ReservationController extends Controller
 {
@@ -33,7 +33,7 @@ class ReservationController extends Controller
         $data = $request->validated();
         $ResCode = Str::random(10); // Use Str::random() directly
         $data['reservation_code'] = $ResCode; // Generate a random reservation code
-        //Mail::to($data['email'])->send(new \App\Mail\ReservationCode($data['reservation_code'])); // Send the reservation code via email
+        Mail::to($data['email'])->send(new ReservationCode($ResCode)); // Send the reservation code via email
 
         $reservation = Reservation::create($data);
         return response()->json([
@@ -47,15 +47,11 @@ class ReservationController extends Controller
      */
     public function show(string $id, Request $request)
     {
-        $reservation = Reservation::where('reservation_code', $id)->first();
-
-        if (!$reservation) {
-            return response()->json(['message' => 'Reservation not found'], 404);
+        $reservation = Reservation::findOrFail($id);
+        $code = $request->input('reservation_code');
+        if (!$code || $reservation->reservation_code !== $code) {
+            return response()->json(['message' => 'Invalid reservation code'], 400);
         }
-
-        // Optionally, you can log the access for auditing purposes
-        Log::info('Reservation accessed', ['reservation_id' => $reservation->id, 'user_id' => Auth::id()]);
-
         return response()->json($reservation);
     }
 
@@ -64,9 +60,13 @@ class ReservationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ReservationRequest $request, string $id)
+    public function update(ReservationRequest $request, string $id, Request $codeRequest)
     {
         $reservation = Reservation::findOrFail($id);
+        $code = $codeRequest->input('reservation_code');
+        if (!$code || $reservation->reservation_code !== $code) {
+            return response()->json(['message' => 'Invalid reservation code'], 400);
+        }
         $reservation->update($request->validated());
         return response()->json($reservation);
     }
@@ -74,9 +74,13 @@ class ReservationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id, Request $request)
     {
+        $code = $request->input('reservation_code');
         $reservation = Reservation::findOrFail($id);
+        if ($reservation->reservation_code !== $code && !$code) {
+            return response()->json(['message' => 'Invalid reservation code'], 400);
+        }
         $reservation->delete();
         return response()->json(null, 204);
     }
