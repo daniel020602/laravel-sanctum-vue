@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth; // Import the Auth facade
 use Illuminate\Support\Facades\Log; // For logging
 use App\Http\Requests\ReservationRequest; // Assuming you have a ReservationRequest for validation
 use App\Mail\ReservationCode; // Assuming you have a ReservationCode Mailable
+use App\Http\Requests\UpdateResRequest; // Assuming you have an UpdateResRequest for updating reservations
 
 class ReservationController extends Controller
 {
@@ -60,10 +61,10 @@ class ReservationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ReservationRequest $request, string $id, Request $codeRequest)
+    public function update(UpdateResRequest $request, string $id)
     {
         $reservation = Reservation::findOrFail($id);
-        $code = $codeRequest->input('reservation_code');
+        $code = $request->input('reservation_code');
         if (!$code || $reservation->reservation_code !== $code) {
             return response()->json(['message' => 'Invalid reservation code'], 400);
         }
@@ -78,7 +79,7 @@ class ReservationController extends Controller
     {
         $code = $request->input('reservation_code');
         $reservation = Reservation::findOrFail($id);
-        if ($reservation->reservation_code !== $code && !$code) {
+        if (!$code || $reservation->reservation_code !== $code) {
             return response()->json(['message' => 'Invalid reservation code'], 400);
         }
         $reservation->delete();
@@ -99,6 +100,10 @@ class ReservationController extends Controller
             return response()->json([
                 'message' => 'Reservation confirmed successfully',
                 'reservation' => $reservation // Return the single reservation, not all()
+            ], 200);
+        } else if ($reservation->is_confirmed) {
+            return response()->json([
+                'message' => 'Reservation already confirmed'
             ], 200);
         } else {
             return response()->json([
