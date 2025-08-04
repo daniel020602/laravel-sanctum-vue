@@ -29,5 +29,6 @@ Route::apiResource('reservations', ReservationController::class);
 Route::apiResource('res-admin', ResAdminController::class);
 Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm']);
 Route::post('/res-admin/{reservation}/complete', [ResAdminController::class, 'complete']);
+Route::post('/orders/{order}/status', [OrderController::class, 'status'])->middleware('auth:sanctum');
 Route::apiResource('orders', OrderController::class);
 Route::apiResource('tables', TablesController::class);

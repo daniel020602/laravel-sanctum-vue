@@ -8,7 +8,8 @@ use App\Models\Reservation;
 use Illuminate\Support\Facades\Auth; // Import the Auth facade
 use Illuminate\Support\Facades\Gate; // For logging
 use App\Models\OldReservation; // Assuming you have an OldReservation model
-
+use App\Http\Requests\UpdateResRequest;
+use App\Http\Requests\ReservationRequest;
 
 class ResAdminController extends Controller
 {
@@ -26,7 +27,7 @@ class ResAdminController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ReservationRequest $request)
     {
         $reservation = Reservation::create($request->all());
         return response()->json($reservation, 201);
@@ -44,10 +45,10 @@ class ResAdminController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateResRequest $request, string $id)
     {
         $reservation = Reservation::findOrFail($id);
-        $reservation->update($request->all());
+        $reservation->update($request->validated());
         return response()->json($reservation);
     }
 

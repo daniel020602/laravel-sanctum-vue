@@ -23,21 +23,6 @@ class UpdateSubRequest extends FormRequest
             'day4' => ['sometimes', 'integer', new ValidDayValue('day4', $weekId)],
             'day5' => ['sometimes', 'integer', new ValidDayValue('day5', $weekId)],
         ];
-
-        if ($this->user()->is_admin) {
-            $rules['week_id'] = [
-                'required',
-                'integer',
-                'exists:weeks,id',
-                Rule::unique('subs')
-                    ->ignore($this->route('subs'))
-                    ->where(fn ($q) => $q->where('user_id', $this->user_id)),
-            ];
-        } else {
-            // Prevent regular users from changing the week
-            $rules['week_id'] = ['prohibited'];
-        }
-
         return $rules;
     }
 }

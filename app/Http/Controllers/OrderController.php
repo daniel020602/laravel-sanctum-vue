@@ -72,8 +72,8 @@ class OrderController extends Controller
      */
     public function show(string $id)
     {
-        Gate::authorize('ownerOrAdmin', [Auth::user(), $id]);
-        $order = Order::with('order_products')->findOrFail($id);
+        $order = Order::with('orderproducts')->findOrFail($id);
+        $this->authorize('ownerOrAdmin', $order);
         return response()->json($order);
     }
 
@@ -124,7 +124,6 @@ class OrderController extends Controller
     public function destroy(string $id)
     {
         $order = Order::findOrFail($id);
-        echo "Deleting order with ID: $id\n", Auth::user()->id;
         $this->authorize('ownerOrAdmin', $order);
         if($order->status === 'completed' or $order->status === 'prepared' or $order->status === 'delivery' or $order->status === 'cancelled') {
             return response()->json(['message' => 'Cannot delete order.'], 403);
@@ -140,7 +139,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->status = $request->input('status');
         $order->save();
-
+        return response()->json($order, 200);
     }
     
 }
