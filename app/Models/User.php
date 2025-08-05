@@ -24,6 +24,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'address'
     ];
 
     /**
@@ -48,10 +50,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function posts()
+    /*public function posts()
     {
         return $this->hasMany(Post::class);
-    }
+    }*/
     public function subs()
     {
         return $this->hasMany(Sub::class);
