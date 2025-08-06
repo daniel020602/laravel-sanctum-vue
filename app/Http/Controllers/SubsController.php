@@ -8,6 +8,8 @@ use App\Models\Sub;
 use App\Http\Requests\StoreSubRequest;
 use App\Http\Requests\UpdateSubRequest;
 use Illuminate\Support\Facades\Auth;
+use Stripe\Stripe;
+use Stripe\Charge;
 
 
 class SubsController extends Controller
@@ -75,5 +77,29 @@ class SubsController extends Controller
             'message' => 'Subscription retrieved successfully',
             'data' => $sub
         ]);
+    }
+    public function pay(Sub $sub)
+    {
+        $this->authorize('update', $sub);
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+        if ($sub->status === 'paid') {
+            return response()->json(['message' => 'Subscription already paid'], 400);
+        }
+
+        $charge = Charge::create([
+            'amount' => 1000, // ár centben (10.00)
+            'currency' => 'usd',
+            'source' => 'tok_visa', // teszt token
+            'description' => "Payment for subscription #{$sub->id}",
+        ]);
+
+        $sub->status = 'paid';
+        $sub->save();
+
+        return response()->json([
+            'message' => 'Payment processed',
+            'charge_id' => $charge->id
+        ], 200);
     }
 }

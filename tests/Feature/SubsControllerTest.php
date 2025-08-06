@@ -8,6 +8,9 @@ use App\Models\Week;
 use App\Models\Menu;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Stripe\Charge;
+use Mockery;
+
 
 class SubsControllerTest extends TestCase
 {
@@ -177,6 +180,56 @@ class SubsControllerTest extends TestCase
         $this->actingAs($otherUser, 'sanctum');
 
         $response = $this->deleteJson("/api/subs/{$sub->id}");
+
+        $response->assertStatus(403);
+    }
+    public function test_user_can_pay_for_subscription()
+    {
+        $user = User::factory()->create();
+        $sub = $this->createSub($user->id);
+        $this->actingAs($user, 'sanctum');
+
+        // Mock Stripe\Charge static method
+        $mockCharge = (object) ['id' => 'ch_test_123'];
+
+        $chargeMock = Mockery::mock('alias:' . Charge::class);
+        $chargeMock->shouldReceive('create')
+            ->once()
+            ->andReturn($mockCharge);
+
+        $response = $this->postJson("/api/subs/{$sub->id}/pay");
+
+        $response->assertStatus(200)
+        ->assertJson([
+            'message' => 'Payment processed',
+            'charge_id' => 'ch_test_123'
+        ]);
+
+
+        $this->assertDatabaseHas('subs', ['id' => $sub->id, 'status' => 'paid']);
+    }
+
+    public function test_user_cannot_pay_for_already_paid_subscription()
+    {
+        $user = User::factory()->create();
+        $sub = $this->createSub($user->id);
+        $sub->status = 'paid';
+        $sub->save();
+        $this->actingAs($user, 'sanctum');
+
+        $response = $this->postJson("/api/subs/{$sub->id}/pay");
+
+        $response->assertStatus(400)
+            ->assertJson(['message' => 'Subscription already paid']);
+    }
+    public function test_user_cannot_pay_for_others_subscription()
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $sub = $this->createSub($user->id);
+        $this->actingAs($otherUser, 'sanctum');
+
+        $response = $this->postJson("/api/subs/{$sub->id}/pay");
 
         $response->assertStatus(403);
     }

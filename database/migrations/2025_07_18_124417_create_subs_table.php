@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('day3');
             $table->integer('day4');
             $table->integer('day5');
+            $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
             $table->timestamps();
         });
     }

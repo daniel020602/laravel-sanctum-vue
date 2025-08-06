@@ -43,6 +43,17 @@ class AuthController extends Controller
         $request->user()->tokens()->delete();
         return ['message' => 'Logged out'];
     }
+    public function changeData(Request $request){
+        $user = $request->user();
+        $fields = $request->validate([
+            'phone' => 'sometimes|string|max:15|regex:/^\+?[0-9]{1,15}$/',
+            'address' => 'sometimes|string|max:255',
+        ]);
+        $user->phone = $fields['phone'] ?? $user->phone;
+        $user->address = $fields['address'] ?? $user->address;
+        $user->save();
+        return ['message' => 'Phone number updated successfully'];
+    }
 
 
 }
