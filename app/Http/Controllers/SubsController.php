@@ -34,7 +34,9 @@ class SubsController extends Controller
     {
         // Authorize via the SubPolicy's update() method
         $this->authorize('update', $sub);
-        
+        if($sub->week >= now()->weekOfYear) {
+            return response()->json(['message' => 'Cannot update subscription with assigned week'], 400);
+        }
         $data = $request->validated();
         $sub->update($data);
         

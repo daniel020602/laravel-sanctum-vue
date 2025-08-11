@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -27,3 +28,5 @@ Artisan::command('krubi', function () {
     shell_exec('php artisan serve');
     
 })->purpose("xd");
+
+Schedule::command('delete:old-unpaid-subs')->sundays()->at('00:00');
