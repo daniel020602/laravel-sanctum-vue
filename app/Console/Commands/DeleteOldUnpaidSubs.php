@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Sub;
+use App\Models\Week;
+
 class DeleteOldUnpaidSubs extends Command
 {
     /**
@@ -28,9 +30,15 @@ class DeleteOldUnpaidSubs extends Command
         $now = now();
         // Get last week's Sunday 00:00
         $upcomingSunday = $now->copy()->next('sunday')->startOfDay();
-        $week= $now->weekOfYear;
-        echo $upcomingSunday->toDateTimeString() . " " . $week . "\n";
-        $unpaidSubs = Sub::where('status', 'unpaid')->get();
+        $weekNumber = $now->weekOfYear;
+        $week = Week::where('week', $weekNumber)
+            ->orderby('created_at', 'desc')
+            ->first();
+        if (!$week) {
+            $this->info('No week found for this week number.');
+            return;
+        }
+        $unpaidSubs = Sub::where('status', 'unpaid')->where('week_id', $week->id)->get();
         if ($unpaidSubs->isEmpty()) {
             $this->info('No unpaid subscriptions found.');
             return;

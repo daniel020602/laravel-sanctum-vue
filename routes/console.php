@@ -29,4 +29,6 @@ Artisan::command('krubi', function () {
     
 })->purpose("xd");
 
-Schedule::command('delete:old-unpaid-subs')->sundays()->at('00:00');
+Schedule::command('app:delete-old-unpaid-subs')->weeklyOn(0, '0:00');
+
+Schedule::command('app:delete-old-unpaid-subs')->everyMinute();
