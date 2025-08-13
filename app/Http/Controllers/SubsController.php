@@ -34,7 +34,17 @@ class SubsController extends Controller
     {
         // Authorize via the SubPolicy's update() method
         $this->authorize('update', $sub);
-        if($sub->week >= now()->weekOfYear) {
+        // If Sub has a week_id and Week model has a 'number' column:
+        if ($sub->relationLoaded('week') || method_exists($sub, 'week')) {
+            $weekNumber = $sub->week->number ?? null;
+        } else {
+            $weekNumber = null;
+            if ($sub->week_id) {
+                $weekModel = \App\Models\Week::find($sub->week_id);
+                $weekNumber = $weekModel ? $weekModel->number : null;
+            }
+        }
+        if ($weekNumber !== null && $weekNumber >= now()->weekOfYear) {
             return response()->json(['message' => 'Cannot update subscription with assigned week'], 400);
         }
         $data = $request->validated();

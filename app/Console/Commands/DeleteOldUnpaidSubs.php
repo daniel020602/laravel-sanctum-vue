@@ -34,10 +34,6 @@ class DeleteOldUnpaidSubs extends Command
         $week = Week::where('week', $weekNumber)
             ->orderby('created_at', 'desc')
             ->first();
-        if (!$week) {
-            $this->info('No week found for this week number.');
-            return;
-        }
         $unpaidSubs = Sub::where('status', 'unpaid')->where('week_id', $week->id)->get();
         if ($unpaidSubs->isEmpty()) {
             $this->info('No unpaid subscriptions found.');
