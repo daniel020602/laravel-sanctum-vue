@@ -53,19 +53,27 @@ class ValidDayValueTest extends TestCase
     public function test_invalid_day_value_fails()
     {
         $menu = Menu::factory()->create();
+
+        // Létrehozunk egy teljesen másik menüt, és azt tesszük be a hétbe
+        $otherMenu = Menu::factory()->create();
+
         $week = Week::factory()->create([
-            'day1a' => $menu->id + 1,
+            'day1a' => $otherMenu->id, // teljesen más ID, garantáltan nem egyezik
         ]);
+
         $rule = new ValidDayValue('day1', $week->id);
+
         $validator = Validator::make([
-            'day1' => $menu->id,
+            'day1' => $menu->id, // ezt próbáljuk beírni
             'week_id' => $week->id,
         ], [
             'day1' => [$rule],
         ]);
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('day1', $validator->errors()->messages());
     }
+
 
     public function test_fails_for_past_week()
     {
@@ -97,4 +105,43 @@ class ValidDayValueTest extends TestCase
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('day1', $validator->errors()->messages());
     }
+    public function test_fails_for_missing_week_id()
+    {
+        $menu = Menu::factory()->create();
+        $rule = new ValidDayValue('day1', null); // no weekId passed
+        $validator = Validator::make([
+            'day1' => $menu->id,
+            // 'week_id' => missing
+        ], [
+            'day1' => [$rule],
+        ]);
+        $this->assertFalse($validator->passes());
+        $this->assertArrayHasKey('day1', $validator->errors()->messages());
+        $this->assertStringContainsString('Week ID is required', $validator->errors()->first('day1'));
+    }
+
+    public function test_fails_for_invalid_menu_value()
+    {
+        $menu = Menu::factory()->create();
+        $week = Week::factory()->create([
+            'week' => now()->weekOfYear, // fontos!
+            'day1a' => $menu->id + 1,
+            'day1b' => $menu->id + 2,
+            'day1c' => $menu->id + 3,
+        ]);
+
+        $rule = new ValidDayValue('day1', $week->id);
+
+        $validator = Validator::make([
+            'day1' => $menu->id,
+            'week_id' => $week->id,
+        ], [
+            'day1' => [$rule],
+        ]);
+
+        $this->assertFalse($validator->passes());
+        $this->assertArrayHasKey('day1', $validator->errors()->messages());
+        $this->assertStringContainsString('The selected value for day1 is invalid', $validator->errors()->first('day1'));
+    }
+
 }

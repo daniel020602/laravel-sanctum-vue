@@ -30,7 +30,7 @@ class AuthController extends Controller
         ]);
         $user =User::where('email', $request->email)->first();
         if(!$user||!Hash::check($request->password, $user->password)){
-            return ['errors' => ['email' => ['Invalid credentials']]];
+            return response()->json(['errors' => ['email' => ['Invalid credentials']]], 401);
 
         }
         $token= $user->createToken($user->name)->plainTextToken;
@@ -43,16 +43,17 @@ class AuthController extends Controller
         $request->user()->tokens()->delete();
         return ['message' => 'Logged out'];
     }
-    public function changeData(Request $request){
+    public function changeData(Request $request)
+    {
         $user = $request->user();
         $fields = $request->validate([
             'phone' => 'sometimes|string|max:15|regex:/^\+?[0-9]{1,15}$/',
             'address' => 'sometimes|string|max:255',
         ]);
-        $user->phone = $fields['phone'] ?? $user->phone;
-        $user->address = $fields['address'] ?? $user->address;
-        $user->save();
-        return ['message' => 'Phone number updated successfully'];
+
+        $user->fill($fields)->save();
+
+        return response()->json(['message' => 'User data updated successfully'], 200);
     }
 
 
