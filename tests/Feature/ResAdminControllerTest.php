@@ -75,7 +75,10 @@ class ResAdminControllerTest extends TestCase
 
     public function test_admin_can_update_reservation()
     {
-        $newData = ['name' => 'Updated Name'];
+        $newData = [
+            'name' => 'Updated Name',
+            'reservation_code' => $this->reservation->reservation_code, 
+        ];
         $response = $this->actingAs($this->admin, 'sanctum')->putJson("/api/res-admin/{$this->reservation->id}", $newData);
         $response->assertStatus(200)
             ->assertJsonFragment(['name' => 'Updated Name']);

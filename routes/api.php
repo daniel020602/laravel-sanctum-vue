@@ -35,4 +35,5 @@ Route::post('/reservations/{reservation}/confirm', [ReservationController::class
 Route::post('/res-admin/{reservation}/complete', [ResAdminController::class, 'complete']);
 Route::post('/orders/{order}/status', [OrderController::class, 'status'])->middleware('auth:sanctum');
 Route::apiResource('orders', OrderController::class);
+Route::post('/orders/{order}/pay', [OrderController::class, 'pay']);
 Route::apiResource('tables', TablesController::class);

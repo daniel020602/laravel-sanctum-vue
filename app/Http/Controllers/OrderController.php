@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Menu;
 use App\Http\Requests\OrderRequest; // Assuming you have an OrderRequest for validation
+use Stripe\Stripe;
+use Stripe\Charge;
+
 
 class OrderController extends Controller
 {
@@ -38,6 +41,11 @@ class OrderController extends Controller
         if($request->has('status')) {
             return response()->json(['message' => 'Status cannot be set during order creation.'], 400);
         }
+        $user = Auth::user();
+
+        if ($request->boolean('is_delivery') && empty($user->address)) {
+            return response()->json(['message' => 'You must provide an address to request delivery.'], 400);
+        }
         $items = $request->input('items');
         $price = 0;
         // Calculate total price first
@@ -51,6 +59,8 @@ class OrderController extends Controller
             'user_id' => Auth::id(),
             'status' => 'pending',
             'total_amount' => $price,
+            'is_paid' => $request->boolean('is_paid', false), // Default to false if not provided
+            'is_delivery' => $request->boolean('is_delivery', false), // Default to
         ]);
 
         // Attach products to the order
@@ -61,10 +71,11 @@ class OrderController extends Controller
                 'menu_id' => $item['id'],
                 'quantity' => $item['quantity'],
                 'price' => $product->price, // Add this line
+
             ]);
         }
 
-        return response()->json($order, 201);
+        return response()->json($order , 201);
     }
 
     /**
@@ -138,8 +149,37 @@ class OrderController extends Controller
         Gate::authorize('admin', Auth::user());
         $order = Order::findOrFail($id);
         $order->status = $request->input('status');
+        $order->is_paid = $request->boolean('is_paid', $order->is_paid); // Update is_paid if provided
         $order->save();
         return response()->json($order, 200);
     }
     
+    public function pay(string $id)
+    {
+        $order = Order::findOrFail($id);
+        $this->authorize('ownerOrAdmin', $order);
+
+        if ($order->status !== 'pending') {
+            return response()->json(['message' => 'Order is not in a payable state.'], 400);
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        try {
+            $charge = Charge::create([
+                'amount' => $order->total_amount * 100, // Convert to cents
+                'currency' => 'usd',
+                'description' => 'Order Payment',
+                'source' => request()->input('stripeToken'), // Assuming you pass the token from the frontend
+            ]);
+
+            // Update order status to paid
+            $order->is_paid = true;
+            $order->save();
+
+            return response()->json(['message' => 'Payment successful', 'order' => $order], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Payment failed: ' . $e->getMessage()], 500);
+        }
+    }
 }

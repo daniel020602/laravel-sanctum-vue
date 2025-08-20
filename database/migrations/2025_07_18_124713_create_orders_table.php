@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('status', ['pending','delivery','prepared', 'completed', 'cancelled'])->default('pending');
             $table->decimal('total_amount', 10, 2); // Total amount for the order
+            $table->boolean('is_paid')->default(false); // Indicates if the order has been paid
+            $table->boolean('is_delivery')->default(false); // Indicates if the order is for delivery
             $table->timestamps();
         });
 

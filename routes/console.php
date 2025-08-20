@@ -29,6 +29,11 @@ Artisan::command('krubi', function () {
     
 })->purpose("xd");
 
+Artisan::command('results', function () {
+    $this->comment("testing results");
+    shell_exec(".\coverage\index.html");
+})->purpose('Display results of a command');
+
 Schedule::command('app:delete-old-unpaid-subs')->weeklyOn(0, '0:00');
 
 Schedule::command('app:delete-old-unpaid-subs')->everyMinute();

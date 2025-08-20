@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateResRequest extends FormRequest
 {
@@ -22,7 +23,12 @@ class UpdateResRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['sometimes', 'string', 'max:15', 'unique:reservations,phone'], // Assuming phone is required for the reservation
+            'phone' => [
+                'sometimes',
+                'string',
+                'max:15',
+                Rule::unique('reservations', 'phone')->ignore($this->route('reservation') ?? $this->route('id')),
+            ],
             'date' => ['sometimes', 'date'],
             'time' => ['sometimes', 'date_format:H:i'],
             'table_id' => [
@@ -37,12 +43,12 @@ class UpdateResRequest extends FormRequest
                         ->where('time', $time)
                         ->exists();
                     if ($exists) {
-                        $fail('This table is already reserved for the selected date and time.');
+                        $fail('This table is already reserved for the selected date and time. NÉZD MILYEN CSENDES AZ OLASZ CSALÁD A MÁSIK ASZTALNÁL!');
                     }
                 },
             ],
             'email' => ['sometimes', 'email'], // Assuming email is required for the reservation
-            'reservation_code' => ['nullable', 'string', 'max:10'], // Optional reservation code
+            'reservation_code' => ['required', 'string', 'max:10'], // Required reservation code
             'name' => ['sometimes', 'string', 'max:255'], // Assuming name is required for the reservation
         ];
     }

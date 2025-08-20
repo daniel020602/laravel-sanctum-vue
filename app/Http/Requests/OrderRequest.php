@@ -27,6 +27,8 @@ class OrderRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['required', 'integer', 'exists:menus,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'is_delivery' => ['boolean'],
+            'is_paid' => ['boolean'], 
         ];
     }
 }

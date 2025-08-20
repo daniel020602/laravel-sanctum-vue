@@ -11,7 +11,6 @@ use Tests\TestCase;
 use Stripe\Charge;
 use Mockery;
 
-
 class SubsControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -42,6 +41,7 @@ class SubsControllerTest extends TestCase
             'day5b' => $this->menuIds[0],
         ]);
     }
+
     protected function createSub($user)
     {
         return Sub::factory()->create([
@@ -71,10 +71,13 @@ class SubsControllerTest extends TestCase
 
         $response = $this->postJson('/api/subs', $payload);
 
-        $response->assertStatus(201);
+        $response->assertStatus(201)
+            ->assertJson([
+                'message' => 'Subscription created successfully',
+                'data' => array_merge($payload, ['user_id' => $user->id])
+            ]);
         $this->assertDatabaseHas('subs', ['user_id' => $user->id, 'week_id' => $this->week->id]);
     }
-
 
     public function test_guest_cannot_create_subscription()
     {
@@ -87,20 +90,24 @@ class SubsControllerTest extends TestCase
     }
 
     public function test_user_can_update_own_subscription()
-    {   
+    {
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
         $sub = $this->createSub($user->id);
-        $response = $this->putJson("/api/subs/{$sub->id}", [
+        $updatePayload = [
             'day1' => $this->week->day1b,
             'day2' => $this->week->day2b,
             'day3' => $this->week->day3b,
             'day4' => $this->week->day4b,
             'day5' => $this->week->day5b,
-        ]);
+        ];
+        $response = $this->putJson("/api/subs/{$sub->id}", $updatePayload);
 
-        $response->assertStatus(200);
-
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Subscription updated successfully',
+                'data' => array_merge(['id' => $sub->id], $updatePayload)
+            ]);
     }
 
     public function test_user_cannot_update_others_subscription()
@@ -168,7 +175,10 @@ class SubsControllerTest extends TestCase
 
         $response = $this->deleteJson("/api/subs/{$sub->id}");
 
-        $response->assertStatus(200);
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Subscription deleted successfully'
+            ]);
         $this->assertDatabaseMissing('subs', ['id' => $sub->id]);
     }
 
@@ -183,6 +193,7 @@ class SubsControllerTest extends TestCase
 
         $response->assertStatus(403);
     }
+
     public function test_user_can_pay_for_subscription()
     {
         $user = User::factory()->create();
@@ -200,11 +211,10 @@ class SubsControllerTest extends TestCase
         $response = $this->postJson("/api/subs/{$sub->id}/pay");
 
         $response->assertStatus(200)
-        ->assertJson([
-            'message' => 'Payment processed',
-            'charge_id' => 'ch_test_123'
-        ]);
-
+            ->assertJson([
+                'message' => 'Payment processed',
+                'charge_id' => 'ch_test_123'
+            ]);
 
         $this->assertDatabaseHas('subs', ['id' => $sub->id, 'status' => 'paid']);
     }
@@ -222,6 +232,7 @@ class SubsControllerTest extends TestCase
         $response->assertStatus(400)
             ->assertJson(['message' => 'Subscription already paid']);
     }
+
     public function test_user_cannot_pay_for_others_subscription()
     {
         $user = User::factory()->create();
@@ -232,5 +243,45 @@ class SubsControllerTest extends TestCase
         $response = $this->postJson("/api/subs/{$sub->id}/pay");
 
         $response->assertStatus(403);
+    }
+
+    public function test_user_cannot_update_subscription_with_future_or_current_week()
+    {
+        $user = User::factory()->create();
+        $week = $this->week;
+
+        $sub = $this->createSub($user->id);
+
+        $this->actingAs($user, 'sanctum');
+
+        $response = $this->putJson("/api/subs/{$sub->id}", [
+            'day1' => 99999
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'message' => 'The selected value for day1 is invalid.',
+                'errors' => [
+                    'day1' => ['The selected value for day1 is invalid.']
+                ]
+            ]);
+    }
+
+    public function test_user_can_view_own_subscription()
+    {
+        $user = User::factory()->create();
+        $sub = $this->createSub($user->id);
+        $this->actingAs($user, 'sanctum');
+
+        $response = $this->getJson("/api/subs/{$sub->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'Subscription retrieved successfully',
+                'data' => [
+                    'id' => $sub->id,
+                    'user_id' => $user->id,
+                ]
+            ]);
     }
 }
