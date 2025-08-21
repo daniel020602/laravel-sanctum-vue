@@ -16,17 +16,17 @@ import {storeToRefs} from 'pinia'
 
 <template>
   <main>
-    <h1 class="title">Log in to your account</h1>
+    <h1 class="title">Jelentkezz be</h1>
     <form @submit.prevent="authenticate('login',formData)" class="w-1/2 mx-auto space-y-6">
         <div>
             <input type="email" name="email" placeholder="email@email.com"  v-model="formData.email"/>
             <p v-if="errors.email" class="error" >{{ errors.email[0] }}</p>
         </div>
         <div>
-            <input type="password" placeholder="password" v-model="formData.password"/>
+            <input type="password" placeholder="jelszó" v-model="formData.password"/>
             <p v-if="errors.password" class="error" >{{ errors.password[0] }}</p>
         </div>
-        <button type="submit" class="primary-btn">login</button>
+        <button type="submit" class="primary-btn">bejelentkezés</button>
     </form>
   </main>
 </template>

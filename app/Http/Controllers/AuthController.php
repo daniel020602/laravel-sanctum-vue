@@ -47,13 +47,13 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $fields = $request->validate([
-            'phone' => 'sometimes|string|max:15|regex:/^\+?[0-9]{1,15}$/',
-            'address' => 'sometimes|string|max:255',
+            'phone' => 'nullable|string|max:15|regex:/^\+?[0-9]{1,15}$/',
+            'address' => 'nullable|string|max:255',
         ]);
 
         $user->fill($fields)->save();
 
-        return response()->json(['message' => 'User data updated successfully'], 200);
+        return response()->json(['message' => 'User data updated successfully', 'user' => $user], 200);
     }
 
 

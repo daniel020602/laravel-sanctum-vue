@@ -8,16 +8,15 @@ import { useAuthStore } from '@/stores/auth'
   <header>
     
       <nav>
-        <RouterLink :to="{name:'home'}" class="nav-link">Home</RouterLink>
+        <RouterLink :to="{name:'home'}" class="nav-link">Főoldal</RouterLink>
         <div v-if="!authStore.user">
-          <RouterLink :to="{name: 'register'}" class="nav-link">Register</RouterLink>
-          <RouterLink :to="{name: 'login'}" class="nav-link">Login</RouterLink>
+          <RouterLink :to="{name: 'register'}" class="nav-link">Regisztráció</RouterLink>
+          <RouterLink :to="{name: 'login'}" class="nav-link">Bejelentkezés</RouterLink>
         </div>
         <div v-if="authStore.user" class="flex items-center space-x-6">
-          <p  >{{ authStore.user.name }}</p>
-          <RouterLink :to="{name: 'create'}" class="nav-link">New post</RouterLink>
+          <RouterLink :to="{name: 'userdata'}">{{ authStore.user.name }}</RouterLink>
           <form @submit.prevent="authStore.logout">
-            <button type="submit" class="nav-link">logout</button>
+            <button type="submit" class="nav-link">Kijelentkezés</button>
           </form>
         </div>
       </nav>

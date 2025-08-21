@@ -57,6 +57,23 @@ export const useAuthStore = defineStore('authStore', {
                 this.errors = {}
                 this.router.push({name:'home'})
             }
+        },
+        async updateUserData(formData) {
+            const res = await fetch('/api/change-data', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify(formData),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                this.user = data.user;
+                this.errors = {};
+            } else {
+                this.errors = data.errors || {};
+            }
         }
     }
 });

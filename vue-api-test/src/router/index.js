@@ -6,6 +6,8 @@ import { useAuthStore } from '../stores/auth.js'
 import CreateView from '../views/posts/CreateView.vue'
 import PostView from '../views/posts/PostView.vue'
 import UpdateView from '@/views/posts/UpdateView.vue'
+import UserDataView from '@/views/auth/UserDataView.vue'
+import Menu from '@/views/Menu.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +47,17 @@ const router = createRouter({
       component: UpdateView,
       meta:{auth:true}
     },
+    {
+      path: '/userdata',
+      name: 'userdata',
+      component: UserDataView,
+      meta:{auth:true}
+    },
+    {
+      path: '/menu',
+      name: 'menu',
+      component: Menu
+    }
 
   ],
 })
