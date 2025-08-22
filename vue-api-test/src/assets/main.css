@@ -18,6 +18,7 @@
     input[type="password"],
     input[type="search"],
     input[type="tel"],
+    input[type="number"],
     input[type="url"], textarea {
         @apply block w-full bg-gray-50 rounded-md border-0 p-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm mb-3;
     }
@@ -68,5 +69,11 @@
     }
     .avatar {
         @apply w-8 h-8 rounded-full overflow-hidden object-center object-cover;
+    }
+    .admin-item {
+        @apply text-lg p-4 w-64 h-48 border-b border-slate-100 rounded-md bg-gray-200 text-center flex items-center justify-center;
+    }
+    select{
+        @apply block w-32 bg-gray-50 rounded-md border-0 p-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm mb-3;
     }
 }

@@ -8,6 +8,8 @@ import PostView from '../views/posts/PostView.vue'
 import UpdateView from '@/views/posts/UpdateView.vue'
 import UserDataView from '@/views/auth/UserDataView.vue'
 import Menu from '@/views/Menu.vue'
+import AdminMainView from '@/views/admin/AdminMainView.vue'
+import MenuAdminView from '@/views/admin/MenuAdminView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -57,7 +59,19 @@ const router = createRouter({
       path: '/menu',
       name: 'menu',
       component: Menu
-    }
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: AdminMainView,
+      meta: { requiresAdmin: true, auth: true }
+    },
+    {
+      path: '/admin/menu',
+      name: 'admin-menu',
+      component: MenuAdminView,
+      meta: { requiresAdmin: true, auth: true }
+    },
 
   ],
 })
@@ -72,6 +86,9 @@ router.beforeEach(async (to, from) =>
   if(!authStore.user && to.meta.auth)
   {
     return {name:'login'}
+  }
+  if (to.meta.requiresAdmin && (!authStore.user || !authStore.user.is_admin)) {
+    return { name: 'home' } // or { path: '/' }
   }
 
 })

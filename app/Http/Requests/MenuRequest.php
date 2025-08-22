@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class MenuRequest extends FormRequest
 {
@@ -21,9 +22,22 @@ class MenuRequest extends FormRequest
      */
     public function rules(): array
     {
+        // when updating we should ignore the current menu id for the unique rule
+        $menu = $this->route('menu');
+        $ignoreId = null;
+        if ($menu) {
+            $ignoreId = is_object($menu) && property_exists($menu, 'id') ? $menu->id : $menu;
+        }
+
         return [
-            'name'=> ['required', 'string', 'max:255', 'unique:menus,name'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                $ignoreId ? Rule::unique('menus', 'name')->ignore($ignoreId) : 'unique:menus,name',
+            ],
             'type' => ['required', 'in:soup,main,dessert'],
+            'price' => ['required', 'numeric', 'min:0'],
         ];
     }
 }

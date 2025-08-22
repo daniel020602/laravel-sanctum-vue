@@ -11,7 +11,7 @@ use App\Models\OrderProducts;
 class Menu extends Model
 {
     use HasFactory;
-    protected $fillable = [ 'name', 'type'];
+    protected $fillable = [ 'name', 'type', 'price'];
     public function order_products()
     {
         return $this->hasMany(OrderProducts::class);
