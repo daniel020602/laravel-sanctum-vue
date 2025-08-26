@@ -4,8 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 //use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\SubsController;
-use App\Http\Controllers\WeeksController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ResAdminController;
@@ -23,11 +21,6 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::put('/change-data', [AuthController::class, 'changeData'])->middleware('auth:sanctum');
 
-
-Route::apiResource('subs', SubsController::class);
-Route::post('/subs/{sub}/pay', [SubsController::class, 'pay']);
-
-Route::apiResource('weeks', WeeksController::class);
 Route::apiResource('menus', MenuController::class);
 Route::apiResource('reservations', ReservationController::class);
 Route::apiResource('res-admin', ResAdminController::class);

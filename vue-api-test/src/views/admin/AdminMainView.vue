@@ -8,7 +8,9 @@
             <RouterLink :to="{name: 'admin-menu'}">
                 <div class="admin-item">étlap szerkesztése</div>
             </RouterLink>
-            <div class="admin-item">heti menü kiírása</div>
+            <RouterLink :to="{name: 'admin-weeks'}">
+                <div class="admin-item">heti menü kiírása</div>
+            </RouterLink>
             <div class="admin-item"></div>
         </div>
     </div>

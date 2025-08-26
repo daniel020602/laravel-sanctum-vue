@@ -11,9 +11,7 @@
         </div>
 
     <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 justify-items-center pb-4 max-h-96 overflow-y-auto">
-            <li v-for="(menu, idx) in filteredItems" 
-                :key="menu.id" 
-                class="bg-amber-50 p-4 rounded text-center w-80 shadow">
+            <li v-for="(menu) in filteredItems" :key="menu.id" class="bg-amber-50 p-4 rounded text-center w-80 shadow">
                 <div v-if="editingId !== menu.id">
                     <div class="font-medium">{{ menu.name }}</div>
                     <div class="text-sm text-slate-600">{{ menu.price }} Ft</div>
@@ -52,82 +50,82 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, reactive} from 'vue'
-import { useMenuStore } from '@/stores/menus'
+    import { onMounted, ref, computed, reactive} from 'vue'
+    import { useMenuStore } from '@/stores/menus'
 
-const menuStore = useMenuStore()
-const selectedType = ref('all')
-const query = ref('')
-const formData = reactive({ name: '', price: '', type: '' })
-const errors = ref({})
+    const menuStore = useMenuStore()
+    const selectedType = ref('all')
+    const query = ref('')
+    const formData = reactive({ name: '', price: '', type: '' })
+    const errors = ref({})
 
-const types = computed(() => {
-    const set = new Set(menuStore.items.map(i => i.type).filter(Boolean))
-    return Array.from(set)
-})
-
-const filteredItems = computed(() => {
-    return menuStore.items.filter(item => {
-        const matchesType = selectedType.value === 'all' || item.type === selectedType.value
-        const matchesQuery = !query.value || item.name.toLowerCase().includes(query.value.toLowerCase())
-        return matchesType && matchesQuery
+    const types = computed(() => {
+        const set = new Set(menuStore.items.map(i => i.type).filter(Boolean))
+        return Array.from(set)
     })
-})
 
-onMounted(() => {
-    menuStore.fetchMenuItems()
-})
+    const filteredItems = computed(() => {
+        return menuStore.items.filter(item => {
+            const matchesType = selectedType.value === 'all' || item.type === selectedType.value
+            const matchesQuery = !query.value || item.name.toLowerCase().includes(query.value.toLowerCase())
+            return matchesType && matchesQuery
+        })
+    })
 
-console.log(menuStore.items)
+    onMounted(() => {
+        menuStore.fetchMenuItems()
+    })
 
-async function handleCreate() {
-    // spread reactive formData into a plain object so the backend receives
-    // { name, price, type } instead of { formData: { ... } }
-    const payload = { ...formData }
-    const res = await menuStore.createMenuItem(payload)
-    if (res && res.errors) {
-        // TODO: show validation/auth errors in the UI
-        console.error('Create menu errors', res.errors)
-        errors.value = res.errors
-    } else {
-        // reset form
-        formData.name = ''
-        formData.price = ''
-        formData.type = ''
-        errors.value = {}
+    console.log(menuStore.items)
+
+    async function handleCreate() {
+        // spread reactive formData into a plain object so the backend receives
+        // { name, price, type } instead of { formData: { ... } }
+        const payload = { ...formData }
+        const res = await menuStore.createMenuItem(payload)
+        if (res && res.errors) {
+            // TODO: show validation/auth errors in the UI
+            console.error('Create menu errors', res.errors)
+            errors.value = res.errors
+        } else {
+            // reset form
+            formData.name = ''
+            formData.price = ''
+            formData.type = ''
+            errors.value = {}
+        }
     }
-}
 
-// inline edit state & handlers
-const editingId = ref(null)
-const editModel = reactive({ name: '', price: 0, type: '' })
+    // inline edit state & handlers
+    const editingId = ref(null)
+    const editModel = reactive({ name: '', price: 0, type: '' })
 
-function startEdit(menu) {
-    editingId.value = menu.id
-    editModel.name = menu.name
-    editModel.price = menu.price
-    editModel.type = menu.type
-}
+    function startEdit(menu) {
+        editingId.value = menu.id
+        editModel.name = menu.name
+        editModel.price = menu.price
+        editModel.type = menu.type
+    }
 
-function cancelEdit() {
-    editingId.value = null
-}
-
-async function saveEdit(id) {
-    const payload = { name: editModel.name, price: editModel.price, type: editModel.type }
-    const res = await menuStore.updateMenuItem(id, payload)
-    if (res && res.errors) {
-        console.error('Update errors', res.errors)
-    } else {
+    function cancelEdit() {
         editingId.value = null
     }
-}
 
-async function confirmDelete(id) {
-    if (!confirm('Biztosan törlöd ezt az elemet?')) return
-    const res = await menuStore.deleteMenuItem(id)
-    if (res && res.errors) {
-        console.error('Delete error', res.errors)
+    async function saveEdit(id) {
+        const payload = { name: editModel.name, price: editModel.price, type: editModel.type }
+        const res = await menuStore.updateMenuItem(id, payload)
+        if (res && res.errors) {
+            console.error('Update errors', res.errors)
+        } else {
+            editingId.value = null
+        }
     }
-}
+
+    async function confirmDelete(id) {
+        if (!confirm('Biztosan törlöd ezt az elemet?')) return
+        const res = await menuStore.deleteMenuItem(id)
+        if (res && res.errors) {
+            console.error('Delete error', res.errors)
+        }
+    }
 </script>

@@ -1,14 +1,9 @@
 <script setup>
   import { ref } from 'vue';
-  import { usePostsStore } from '@/stores/posts'
   import { onMounted } from 'vue';
   import { RouterLink } from 'vue-router';
   import Introduction from './Introduction.vue';
-  const { getAllPosts } = usePostsStore()
-  const posts= ref([])
-  onMounted(async () => {
-    posts.value = await getAllPosts()
-  });
+
 </script>
 
 <template>

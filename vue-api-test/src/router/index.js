@@ -10,6 +10,7 @@ import UserDataView from '@/views/auth/UserDataView.vue'
 import Menu from '@/views/Menu.vue'
 import AdminMainView from '@/views/admin/AdminMainView.vue'
 import MenuAdminView from '@/views/admin/MenuAdminView.vue'
+import WeeksAdminView from '@/views/admin/WeeksAdminView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -70,6 +71,12 @@ const router = createRouter({
       path: '/admin/menu',
       name: 'admin-menu',
       component: MenuAdminView,
+      meta: { requiresAdmin: true, auth: true }
+    },
+    {
+      path: '/admin/weeks',
+      name: 'admin-weeks',
+      component: WeeksAdminView,
       meta: { requiresAdmin: true, auth: true }
     },
 
