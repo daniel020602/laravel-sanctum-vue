@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Week;
+use App\Models\Menu;
+use App\Models\WeekMenu;
+use App\Models\User;
+use App\Http\Requests\StoreWeekRequest;
+use Illuminate\Support\Facades\DB;
+
+class WeeksController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->except('store');
+    }
+
+    public function index(Request $request)
+    {
+        $weeks = Week::all();
+        return response()->json([
+            'weeks' => $weeks
+        ]);
+    }
+    public function show($id)
+    {
+        $week = Week::findOrFail($id);
+        $weekMenus = Menu::where('week_id', $id)->get();
+        return response()->json([
+            'week' => $week,
+            'menus' => $weekMenus
+        ]);
+    }
+    public function store(StoreWeekRequest $request)
+    {
+        $menus = $request->input('menus', []);
+
+        return DB::transaction(function () use ($request, $menus) {
+            // create the week
+            $week = Week::create([
+                'year' => $request->year,
+                'week_number' => $request->week_number,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+            ]);
+
+            $days = ['day1', 'day2', 'day3', 'day4', 'day5'];
+            $options = ['soup', 'a', 'b', 'c'];
+
+            $records = [];
+
+            foreach ($days as $i => $day) {
+                if (!isset($menus[$day]) || !is_array($menus[$day])) continue;
+                foreach ($options as $option) {
+                    if (!isset($menus[$day][$option])) continue;
+
+                    $records[] = [
+                        'week_id' => $week->id,
+                        'menu_id' => $menus[$day][$option],
+                        'day_of_week' => $i + 1,
+                        'option' => $option,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+
+            if (!empty($records)) {
+                // Use upsert to insert or update by the unique key (week_id, day_of_week, option)
+                DB::table('week_menus')->upsert(
+                    $records,
+                    ['week_id', 'day_of_week', 'option'],
+                    ['menu_id', 'updated_at']
+                );
+            }
+
+            // load related menus for response
+            $weekMenus = DB::table('week_menus')
+                ->where('week_id', $week->id)
+                ->get();
+
+            return response()->json([
+                'message' => 'Week and menus created successfully',
+                'data' => [
+                    'week' => $week,
+                    'week_menus' => $weekMenus,
+                ]
+            ], 201);
+        });
+    }
+}

@@ -9,6 +9,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ResAdminController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TablesController;
+use App\Http\Controllers\WeeksController;
 
 
 Route::get('/user', function (Request $request) {
@@ -30,3 +31,5 @@ Route::post('/orders/{order}/status', [OrderController::class, 'status'])->middl
 Route::apiResource('orders', OrderController::class);
 Route::post('/orders/{order}/pay', [OrderController::class, 'pay']);
 Route::apiResource('tables', TablesController::class);
+
+Route::apiResource('weeks', WeeksController::class);
