@@ -4,11 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreWeekRequest extends FormRequest
+class UpdateWeekRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
@@ -28,19 +25,15 @@ class StoreWeekRequest extends FormRequest
         $options = ['soup', 'a', 'b', 'c'];
 
         $rules = [
-            'year' => 'required|integer',
-            'week_number' => 'required|integer',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
             'menus' => 'required|array',
         ];
 
         foreach ($days as $day) {
             // Ellenőrizd, hogy a nap mező (pl. menus.day1) létezik-e és tömb-e
-            $rules["menus.{$day}"] = 'required|array';
+            $rules["menus.{$day}"] = 'sometimes|array';
             foreach ($options as $option) {
                 // Ellenőrizd, hogy a napi opció mező (pl. menus.day1.soup) létezik-e és egész szám-e
-                $rules["menus.{$day}.{$option}"] = 'required|integer|exists:menus,id';
+                $rules["menus.{$day}.{$option}"] = 'sometimes|integer|exists:menus,id';
             }
         }
 

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('option', ['a', 'b', 'c','soup'])->default('a');
             $table->timestamps();
 
-            $table->unique(['week_id', 'day_of_week', 'option']);
+            $table->unique(['week_id', 'day_of_week', 'menu_id']);
         });
     }
 
