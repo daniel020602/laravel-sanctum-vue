@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('week_id')->constrained('weeks')->onDelete('cascade');
-            $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
             $table->timestamps();
 
             $table->unique(['user_id', 'week_id']);

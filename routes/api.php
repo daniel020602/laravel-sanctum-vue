@@ -10,6 +10,7 @@ use App\Http\Controllers\ResAdminController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TablesController;
 use App\Http\Controllers\WeeksController;
+use App\Http\Controllers\SubscriptionsController;
 
 
 Route::get('/user', function (Request $request) {
@@ -33,3 +34,4 @@ Route::post('/orders/{order}/pay', [OrderController::class, 'pay']);
 Route::apiResource('tables', TablesController::class);
 
 Route::apiResource('weeks', WeeksController::class);
+Route::apiResource('subscriptions', SubscriptionsController::class);
