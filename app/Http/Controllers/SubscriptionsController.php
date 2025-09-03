@@ -69,10 +69,34 @@ class SubscriptionsController extends Controller
                 'week_menu_id' => $menu->id
             ]);
         }
-        echo $weekMenus->pluck('id');
         return response()->json([
             'message' => 'Subscription created',
 
         ], 201);
+    }
+    public function update(Request $request, $id)
+    {
+        $subscription= Subscription::findOrFail($id);
+        $weekMenus = WeekMenu::where('week_id', $request->input('week_id'))->get();
+        $request->validate([
+            'week_id' => 'required|exists:weeks,id',
+            'choices' => 'required|array|min:1|max:5',
+            'choices.*.week_menu_id' => 'required|exists:week_menus,id',
+            'choices.*.day' => 'required|integer|between:1,5',
+        ]);
+        foreach ($request->input('choices') as $choice) {
+            if($choice['day']==$weekMenus->firstWhere('id', $choice['week_menu_id'])->day){
+                SubscriptionChoice::updateOrCreate(
+                    [
+                        'subscription_id' => $subscription->id,
+                        'week_menu_id' => $choice['week_menu_id'],
+                    ],
+                    [
+                        'day' => $choice['day'],
+                    ]
+                );
+            }
+        }
+
     }
 }
