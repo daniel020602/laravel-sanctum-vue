@@ -66,7 +66,8 @@ class SubscriptionsController extends Controller
         foreach($weekMenus as $menu){
             SubscriptionChoice::create([
                 'subscription_id' => $subscription->id,
-                'week_menu_id' => $menu->id
+                'week_menu_id' => $menu->id,
+                'day' => $menu->day_of_week
             ]);
         }
         return response()->json([
@@ -76,27 +77,55 @@ class SubscriptionsController extends Controller
     }
     public function update(Request $request, $id)
     {
-        $subscription= Subscription::findOrFail($id);
-        $weekMenus = WeekMenu::where('week_id', $request->input('week_id'))->get();
+        $subscription = Subscription::findOrFail($id);
+
         $request->validate([
             'week_id' => 'required|exists:weeks,id',
             'choices' => 'required|array|min:1|max:5',
             'choices.*.week_menu_id' => 'required|exists:week_menus,id',
             'choices.*.day' => 'required|integer|between:1,5',
         ]);
-        foreach ($request->input('choices') as $choice) {
-            if($choice['day']==$weekMenus->firstWhere('id', $choice['week_menu_id'])->day){
-                SubscriptionChoice::updateOrCreate(
-                    [
-                        'subscription_id' => $subscription->id,
-                        'week_menu_id' => $choice['week_menu_id'],
-                    ],
-                    [
-                        'day' => $choice['day'],
-                    ]
-                );
-            }
+
+        // Ensure subscription belongs to the same week
+        $requestedWeekId = (int) $request->input('week_id');
+        if ((int) $subscription->week_id !== $requestedWeekId) {
+            return response()->json(['message' => 'Subscription week does not match provided week_id'], 400);
         }
 
+        // Load week menus for the requested week and key by id for efficient lookup
+        $weekMenus = WeekMenu::where('week_id', $requestedWeekId)->get()->keyBy('id');
+
+        foreach ($request->input('choices') as $choice) {
+            $wmId = (int) $choice['week_menu_id'];
+            $day = (int) $choice['day'];
+
+            // Verify the week_menu belongs to the requested week
+            if (! isset($weekMenus[$wmId])) {
+                return response()->json(['message' => "Week menu {$wmId} does not belong to week {$requestedWeekId}"], 400);
+            }
+
+            $wm = $weekMenus[$wmId];
+
+            // Verify the day matches the week_menu's day_of_week
+            if ((int) $wm->day_of_week !== $day) {
+                return response()->json(['message' => 'Day does not match the week menu day'], 400);
+            }
+
+            // Update or create the subscription choice
+            SubscriptionChoice::updateOrCreate(
+                [
+                    'subscription_id' => $subscription->id,
+                    'week_menu_id' => $wmId,
+                ],
+                [
+                    'day' => $day,
+                ]
+            );
+        }
+
+        return response()->json([
+            'message' => 'Subscription updated',
+        ], 200);
     }
+
 }

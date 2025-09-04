@@ -8,7 +8,7 @@ use App\Models\Subscription;
 
 class SubscriptionChoice extends Model
 {
-    protected $fillable = ['subscription_id', 'week_menu_id'];
+    protected $fillable = ['subscription_id', 'week_menu_id', 'day'];
 
     public function subscription()
     {
