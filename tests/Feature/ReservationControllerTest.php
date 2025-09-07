@@ -159,6 +159,21 @@ class ReservationControllerTest extends TestCase
             ->assertJson(['message' => 'Invalid reservation code or reservation already confirmed']);
     }
 
+    public function test_confirm_returns_already_confirmed_when_already_confirmed()
+    {
+        // mark reservation as already confirmed
+        $this->reservation->is_confirmed = true;
+        $this->reservation->save();
+
+        $response = $this->postJson(
+            "/api/reservations/{$this->reservation->id}/confirm",
+            ['reservation_code' => $this->reservation->reservation_code]
+        );
+
+        $response->assertStatus(200)
+            ->assertJson(['message' => 'Reservation already confirmed']);
+    }
+
     private function makeReservationData(array $overrides = [])
     {
         return array_merge([

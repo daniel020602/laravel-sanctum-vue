@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Subscription;
 use App\Models\SubscriptionChoice;
+use App\Models\User;
 use Stripe\Stripe;
 use Stripe\Charge;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\WeekMenu;
+use App\Models\Week;
+use Illuminate\Support\Facades\Gate;
 
 
 class SubscriptionsController extends Controller
@@ -20,17 +23,30 @@ class SubscriptionsController extends Controller
         $this->middleware('auth:sanctum');
     }
     public function index(){
-        $subscriptions = Subscription::all();
+        if(Auth::user()->is_admin){
+            $subscriptions = Subscription::all();
+        } else {
+            $subscriptions = Subscription::where('user_id', Auth::id())->get();
+        }
         return response()->json([
             'subscriptions' => $subscriptions
         ]);
     }
 
     public function show($id){
+
+       /* echo 'here';
+        $this->authorize('admin');
+        echo 'here2';*/
         $subscription = Subscription::find($id);
         $subscriptionChoices = SubscriptionChoice::where('subscription_id', $id)->get();
         if(!$subscription) {
             return response()->json(['message' => 'Subscription not found'], 404);
+        }
+        if (Gate::any(['owner', 'admin'], $subscription)) {
+            // authorized
+        } else {
+            abort(403);
         }
         return response()->json([
             'subscription' => $subscription,
@@ -45,7 +61,10 @@ class SubscriptionsController extends Controller
             'week_id' => 'required|exists:weeks,id',
             'user_id' => 'required|exists:users,id',
         ]);
-
+        $week = Week::findOrFail($data['week_id']);
+        if($week->start_date < now()->toDateString()){
+            return response()->json(['message' => 'Can only subscribe to current or future weeks'], 400);
+        }
         $subscription = Subscription::create([
             'user_id' => $data['user_id'],
             'week_id' => $data['week_id'],
@@ -56,6 +75,11 @@ class SubscriptionsController extends Controller
             'amount' => 1000,
             'status' => 'succeeded',
         ];
+
+        // Allow forcing mock payment status for tests
+        if ($request->has('mock_charge_status')) {
+            $mockCharge['status'] = $request->input('mock_charge_status');
+        }
 
         if ($mockCharge['status'] !== 'succeeded') {
             return response()->json(['message' => 'Payment failed'], 402);
@@ -78,7 +102,15 @@ class SubscriptionsController extends Controller
     public function update(Request $request, $id)
     {
         $subscription = Subscription::findOrFail($id);
-
+        if (Gate::any(['owner', 'admin'], $subscription)) {
+            // authorized
+        } else {
+            abort(403);
+        }
+        $week = Week::findOrFail($subscription->week_id);
+        if($week->start_date < now()->toDateString()){
+            return response()->json(['message' => 'Can only change future week choices'], 400);
+        }
         $request->validate([
             'week_id' => 'required|exists:weeks,id',
             'choices' => 'required|array|min:1|max:5',
@@ -126,6 +158,27 @@ class SubscriptionsController extends Controller
         return response()->json([
             'message' => 'Subscription updated',
         ], 200);
+    }
+    public function destroy($id)
+    {
+        $subscription = Subscription::find($id);
+        if (!$subscription) {
+            return response()->json(['message' => 'Subscription not found'], 404);
+        }
+        if (Gate::any(['owner', 'admin'], $subscription)) {
+            // authorized
+        } else {
+            abort(403);
+        }
+        $week = Week::findOrFail($subscription->week_id);
+        if($week->start_date < now()->toDateString()){
+            return response()->json(['message' => 'Can only change future week choices'], 400);
+        }
+        // Delete associated choices first
+        SubscriptionChoice::where('subscription_id', $subscription->id)->delete();
+        $subscription->delete();
+
+        return response()->json(['message' => 'Subscription deleted'], 200);
     }
 
 }

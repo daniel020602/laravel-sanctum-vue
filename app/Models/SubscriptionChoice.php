@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\WeekMenu;
 use App\Models\Subscription;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SubscriptionChoice extends Model
 {
+    use HasFactory;
     protected $fillable = ['subscription_id', 'week_menu_id', 'day'];
 
     public function subscription()

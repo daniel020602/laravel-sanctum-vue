@@ -8,7 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Post;
-use App\Models\Sub;
+use App\Models\Subscription;
+use App\Models\Order;
 
 class User extends Authenticatable
 {
@@ -54,9 +55,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class);
     }*/
-    public function subs()
+    public function subscriptions()
     {
-        return $this->hasMany(Sub::class);
+        return $this->hasMany(Subscription::class);
     }
     public function orders()
     {

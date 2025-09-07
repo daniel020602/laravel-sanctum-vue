@@ -10,6 +10,7 @@ use App\Models\SubscriptionChoice;
 
 class WeekMenu extends Model
 {
+    use HasFactory;
     protected $fillable = ['week_id', 'menu_id', 'day_of_week'];
     
     public function week()

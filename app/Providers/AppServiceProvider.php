@@ -12,6 +12,8 @@ use App\Policies\TablePolicy;
 use App\Models\Table;
 use App\Models\Week;
 use App\Policies\WeekPolicy;
+use App\Models\Subscription;
+use App\Policies\SubscriptionPolicy;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Table::class, TablePolicy::class);
         Gate::policy(Week::class, WeekPolicy::class);
+        Gate::policy(Subscription::class, SubscriptionPolicy::class);
     }
     
 }
