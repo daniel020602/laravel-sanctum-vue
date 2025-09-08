@@ -94,7 +94,7 @@ class WeeksControllerTest extends TestCase
 
 		$payload = $this->examplePayload();
 		// ensure menus reference real menu ids (unique per day) so validation passes
-		$menus = Menu::factory()->count(20)->create();
+	$menus = Menu::factory()->count(30)->create();
 		foreach ($payload['menus'] as $day => $options) {
 			$rand = $menus->random(4)->values();
 			$i = 0;
@@ -103,7 +103,10 @@ class WeeksControllerTest extends TestCase
 			}
 		}
 
-		$response = $this->postJson('/api/weeks', $payload);
+	// create a week to update so UpdateWeekRequest is used
+	$week = Week::factory()->create(['week_number' => 10, 'year' => 2025]);
+
+	$response = $this->putJson('/api/weeks/' . $week->id, $payload);
 		// validation should pass, but controller authorizes admin and denies non-admin
 		$response->assertStatus(403);
 	}
@@ -114,7 +117,7 @@ class WeeksControllerTest extends TestCase
 		$this->actingAs($user, 'sanctum');
 
 		// create menus and assign consistent ids
-		$menus = Menu::factory()->count(20)->create();
+		$menus = Menu::factory()->count(30)->create();
 		$payload = $this->examplePayload();
 		// set all menu references to real ids to avoid FK issues
 		foreach ($payload['menus'] as $day => $options) {
@@ -138,7 +141,7 @@ class WeeksControllerTest extends TestCase
 		$this->actingAs($user, 'sanctum');
 
 		$week = Week::factory()->create(['week_number' => 40]);
-	$menus = Menu::factory()->count(20)->create();
+	$menus = Menu::factory()->count(30)->create();
 
 		$payload = $this->examplePayload();
 		foreach ($payload['menus'] as $day => $options) {
@@ -170,6 +173,69 @@ class WeeksControllerTest extends TestCase
 
 		$this->assertDatabaseMissing('weeks', ['id' => $week->id]);
 		$this->assertDatabaseMissing('week_menus', ['week_id' => $week->id]);
+	}
+
+	public function test_store_fails_when_duplicate_menu_in_same_day()
+	{
+		$user = User::factory()->create(['is_admin' => true]);
+		$this->actingAs($user, 'sanctum');
+
+	$menus = Menu::factory()->count(20)->create();
+		$payload = $this->examplePayload();
+
+		// assign real ids but introduce a duplicate in day1 (a and b same)
+		$payload['menus']['day1']['soup'] = $menus[0]->id;
+		$payload['menus']['day1']['a'] = $menus[1]->id;
+		$payload['menus']['day1']['b'] = $menus[1]->id; // duplicate
+		$payload['menus']['day1']['c'] = $menus[2]->id;
+
+		// fill other days with unique ids
+		$idx = 3;
+		foreach (['day2','day3','day4','day5'] as $day) {
+			$payload['menus'][$day]['soup'] = $menus[$idx++]->id;
+			$payload['menus'][$day]['a'] = $menus[$idx++]->id;
+			$payload['menus'][$day]['b'] = $menus[$idx++]->id;
+			$payload['menus'][$day]['c'] = $menus[$idx++]->id;
+		}
+
+		$response = $this->postJson('/api/weeks', $payload);
+		$response->assertStatus(422);
+		$response->assertJsonValidationErrors('menus.day1');
+
+		$errors = $response->json('errors');
+		$this->assertEquals('Duplicate menu detected for day1.', $errors['menus.day1'][0]);
+	}
+
+	public function test_update_fails_when_duplicate_menu_in_same_day()
+	{
+		$user = User::factory()->create(['is_admin' => true]);
+		$this->actingAs($user, 'sanctum');
+
+		$menus = Menu::factory()->count(30)->create();
+		$week = Week::factory()->create(['week_number' => 11, 'year' => 2025]);
+
+		$payload = $this->examplePayload();
+
+		// introduce duplicate in day3
+		$payload['menus']['day3']['soup'] = $menus[5]->id;
+		$payload['menus']['day3']['a'] = $menus[6]->id;
+		$payload['menus']['day3']['b'] = $menus[6]->id; // duplicate
+		$payload['menus']['day3']['c'] = $menus[7]->id;
+
+		// fill other days with unique ids
+		$idx = 8;
+		foreach (['day1','day2','day4','day5'] as $day) {
+			$payload['menus'][$day]['soup'] = $menus[$idx++]->id;
+			$payload['menus'][$day]['a'] = $menus[$idx++]->id;
+			$payload['menus'][$day]['b'] = $menus[$idx++]->id;
+			$payload['menus'][$day]['c'] = $menus[$idx++]->id;
+		}
+
+		$response = $this->putJson('/api/weeks/' . $week->id, $payload);
+		$response->assertStatus(422);
+		$response->assertJsonValidationErrors('menus.day3');
+		$errors = $response->json('errors');
+		$this->assertEquals('Duplicate menu detected for day3.', $errors['menus.day3'][0]);
 	}
 
 	/*public function test_non_admin_cannot_update_or_delete_week()

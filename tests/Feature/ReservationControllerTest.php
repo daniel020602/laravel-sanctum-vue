@@ -185,4 +185,26 @@ class ReservationControllerTest extends TestCase
             'table_id' => $this->table->id
         ], $overrides);
     }
+
+    public function test_cannot_create_reservation_for_already_reserved_table()
+    {
+        // attempt to create a reservation for the same table/date/time as the one created in setUp
+        $data = $this->makeReservationData([
+            'date' => $this->reservation->date,
+            'time' => $this->reservation->time,
+            'table_id' => $this->table->id,
+            'phone' => '0987654321', // different phone to avoid unique phone validation
+        ]);
+
+        $response = $this->postJson('/api/reservations', $data);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('table_id');
+
+        $errors = $response->json('errors');
+        $this->assertEquals(
+            'This table is already reserved for the selected date and time.',
+            $errors['table_id'][0]
+        );
+    }
 }
