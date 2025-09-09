@@ -11,7 +11,7 @@ use App\Models\User;
 use App\Http\Requests\StoreWeekRequest;
 use App\Http\Requests\UpdateWeekRequest;
 use Illuminate\Support\Facades\DB;
-use Psy\Command\WhereamiCommand;
+// removed unused debug import
 
 class WeeksController extends Controller
 {
@@ -26,9 +26,7 @@ class WeeksController extends Controller
         $user = $request->user();
         // If admin, return all weeks; else, only weeks where week_number <= current week
         if ($user && $user->is_admin) {
-            echo "admin";
             $weeks = Week::orderBy('start_date', 'asc')->get();
-
         } else {
             $currentWeek = now()->weekOfYear;
             $weeks = Week::where('week_number', '>=', $currentWeek)

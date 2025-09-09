@@ -21,9 +21,19 @@ export const useWeeksStore = defineStore("weeks", {
           },
         });
 
-        const data = await response.json();
-        this.items = data.data; // <-- This line updates the store!
-        console.log(data);
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          // non-JSON response — log raw text to help debug server side issues
+          console.error('fetchWeeks: server returned non-JSON response:', text);
+          throw new Error('Server returned non-JSON response');
+        }
+
+        // support different shapes: { data: [...] } or { weeks: [...] }
+        this.items = data.data ?? data.weeks ?? data;
+        console.log('fetchWeeks parsed response:', data);
       } catch (error) {
         console.error("Error fetching weeks:", error);
       } finally {
