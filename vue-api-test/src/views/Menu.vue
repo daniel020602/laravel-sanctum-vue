@@ -2,7 +2,7 @@
     <div class="container mx-auto p-4">
         <h1 class="title">Étlap</h1>
         <div v-if="menus.length" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4  ">
-            <div v-for="(menu, idx) in mainMenus" :key="menu.id" class="bg-amber-50 p-4 rounded text-center">
+            <div v-for="(menu) in mainMenus" :key="menu.id" class="bg-amber-50 p-4 rounded text-center">
                 {{ menu.name }} - {{ menu.price }} Ft
             </div>
         </div>

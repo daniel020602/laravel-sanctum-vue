@@ -3,6 +3,7 @@
     <div class="m-auto flex flex-col items-center justify-center">
         <h1 class="text-2xl font-semibold mb-4">Heti menük</h1>
 
+        <RouterLink :to="{ name: 'admin-weeks-create' }" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded">Új hét hozzáadása</RouterLink>
         <div class="flex items-center mb-4">
             <input id="showHistoric" type="checkbox" v-model="showHistoric" class="mr-2"/>
             <label for="showHistoric">korábbi hetek mutatása</label>
@@ -16,13 +17,15 @@
 
             <ul v-else class="w-full max-w-xl">
                 <li v-for="week in visibleWeeks" :key="week.id" class="p-3 border-b last:border-b-0">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <div class="font-medium">Hét {{ week.week_number }} — {{ week.year }}</div>
-                            <div class="text-sm text-gray-500">{{ formatDate(week.start_date) }} — {{ formatDate(week.end_date) }}</div>
+                    <RouterLink :to="{ name: 'admin-weeks-edit', params: { id: week.id } }" class="week-list">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-medium">Hét {{ week.week_number }} — {{ week.year }}</div>
+                                <div class="text-sm text-gray-500">{{ formatDate(week.start_date) }} — {{ formatDate(week.end_date) }}</div>
+                            </div>
+                            <div class="text-sm text-gray-600">ID: {{ week.id }}</div>
                         </div>
-                        <div class="text-sm text-gray-600">ID: {{ week.id }}</div>
-                    </div>
+                    </RouterLink>
                 </li>
             </ul>
         </div>
@@ -32,6 +35,7 @@
 <script setup>
 import { useWeeksStore } from '@/stores/weeks';
 import { onMounted, computed, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 
 const weeksStore = useWeeksStore();
 const weeks = computed(() => weeksStore.items ?? []);

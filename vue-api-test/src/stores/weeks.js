@@ -5,8 +5,13 @@ export const useWeeksStore = defineStore("weeks", {
   state: () => ({
     user: null,
     items: [],
+    menus: [],
     isLoading: false,
   }),
+  getters: {
+    soups: (state) => state.menus.filter(m => m.type === 'soup'),
+    mains: (state) => state.menus.filter(m => m.type === 'main'),
+  },
   actions: {
     async fetchWeeks() {
       this.isLoading = true;
@@ -39,6 +44,54 @@ export const useWeeksStore = defineStore("weeks", {
       } finally {
         this.isLoading = false;
       }
+    },
+    async fetchMenus() {
+      const headers = {};
+      const token = localStorage.getItem('token');
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      const res = await fetch('/api/menus', { credentials: 'include', headers });
+      if (!res.ok) throw new Error('Failed to fetch menus');
+      const data = await res.json();
+      this.menus = Array.isArray(data) ? data : (data.data ?? []);
+    },
+    async fetchWeek(id) {
+      const headers = {};
+      const token = localStorage.getItem('token');
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      const res = await fetch(`/api/weeks/${id}`, { credentials: 'include', headers });
+      if (!res.ok) throw new Error('Failed to fetch week');
+      const data = await res.json();
+      return data; // { week, menus }
+    },
+    async updateWeek(id, payload) {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = localStorage.getItem('token');
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      const res = await fetch(`/api/weeks/${id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
+    },
+    async createWeek(payload) {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = localStorage.getItem('token');
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      const res = await fetch('/api/weeks', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
     },
   },
 });

@@ -164,7 +164,12 @@ class WeeksControllerTest extends TestCase
 		$user = User::factory()->create(['is_admin' => true]);
 		$this->actingAs($user, 'sanctum');
 
-		$week = Week::factory()->create();
+		$start = now()->startOfWeek()->addWeeks(2);
+		$week = Week::factory()->create([
+			'start_date' => $start->toDateString(),
+			'week_number' => (int) $start->weekOfYear,
+			'year' => (int) $start->year,
+		]);
 		WeekMenu::factory()->create(['week_id' => $week->id]);
 
 		$response = $this->deleteJson('/api/weeks/' . $week->id);

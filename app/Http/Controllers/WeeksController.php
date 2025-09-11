@@ -142,20 +142,16 @@ class WeeksController extends Controller
                     ];
                 }
             }
+            
+            // Ensure week_menus table reflects the provided payload. Use DB table calls
+            // because the Week model defines the relation as `week_menus()` (snake_case).
+            DB::table('week_menus')->where('week_id', $week->id)->delete();
 
             if (!empty($records)) {
-                // Upsert to update or insert menu options for the week
-                DB::table('week_menus')->upsert(
-                    $records,
-                    ['week_id', 'day_of_week', 'option'],
-                    ['menu_id', 'updated_at']
-                );
+                DB::table('week_menus')->insert($records);
             }
 
-            // load related menus for response
-            $weekMenus = DB::table('week_menus')
-                ->where('week_id', $week->id)
-                ->get();
+            $weekMenus = DB::table('week_menus')->where('week_id', $week->id)->get();
 
             return response()->json([
                 'message' => 'Week menus updated successfully',
@@ -171,7 +167,10 @@ class WeeksController extends Controller
         $this->authorize('admin', Week::class);
 
         $week = Week::findOrFail($id);
+        if ($week->week_number < now()->week()+2) {
+            return response()->json(['message' => 'Can only delete future weeks.'], 400);
 
+        }
         // Delete related week_menus entries
         WeekMenu::where('week_id', $week->id)->delete();
 

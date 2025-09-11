@@ -11,6 +11,8 @@ import Menu from '@/views/Menu.vue'
 import AdminMainView from '@/views/admin/AdminMainView.vue'
 import MenuAdminView from '@/views/admin/MenuAdminView.vue'
 import WeeksAdminView from '@/views/admin/WeeksAdminView.vue'
+import AddNewWeek from '@/views/admin/AddNewWeek.vue'
+import EditWeekView from '@/views/admin/EditWeekView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -79,6 +81,18 @@ const router = createRouter({
       component: WeeksAdminView,
       meta: { requiresAdmin: true, auth: true }
     },
+    {
+      path: '/admin/weeks/create',
+      name: 'admin-weeks-create',
+      component: AddNewWeek,
+      meta: { requiresAdmin: true, auth: true }
+    },
+    {
+      path: '/admin/weeks/edit/:id',
+      name: 'admin-weeks-edit',
+      component: EditWeekView,
+      meta: { requiresAdmin: true, auth: true }
+    }
 
   ],
 })

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\WeekMenu;
 use App\Models\Week;
 use Illuminate\Support\Facades\Gate;
-
+use Carbon\Carbon;
 
 class SubscriptionsController extends Controller
 {
@@ -62,8 +62,9 @@ class SubscriptionsController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
         $week = Week::findOrFail($data['week_id']);
-        if($week->start_date < now()->toDateString()){
-            return response()->json(['message' => 'Can only subscribe to current or future weeks'], 400);
+        $next = Carbon::now()->addWeek();
+        if ((int)$week->week_number !== $next->weekOfYear || (int)$week->year !== $next->year) {
+            return response()->json(['message' => 'Can only subscribe to next week'], 400);
         }
         $subscription = Subscription::create([
             'user_id' => $data['user_id'],

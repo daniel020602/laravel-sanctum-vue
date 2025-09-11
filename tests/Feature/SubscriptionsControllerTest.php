@@ -75,7 +75,12 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->addDay()->toDateString()]);
+        $start = now()->addWeek();
+        $week = Week::factory()->create([
+            'start_date' => $start->toDateString(),
+            'week_number' => (int) $start->weekOfYear,
+            'year' => (int) $start->year,
+        ]);
         // create week menus (option 'a') for each day
         for ($i = 1; $i <= 5; $i++) {
             WeekMenu::factory()->create(['week_id' => $week->id, 'day_of_week' => $i, 'option' => 'a']);
@@ -93,7 +98,12 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->addDay()->toDateString()]);
+    $start = now()->startOfWeek()->addWeek();
+        $week = Week::factory()->create([
+            'start_date' => $start->toDateString(),
+            'week_number' => (int) $start->weekOfYear,
+            'year' => (int) $start->year,
+        ]);
         $sub = Subscription::factory()->create(['user_id' => $user->id, 'week_id' => $week->id]);
 
         // create week menus for week and grab ids keyed by day
@@ -118,7 +128,12 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->addDay()->toDateString()]);
+    $start = now()->startOfWeek()->addWeek();
+        $week = Week::factory()->create([
+            'start_date' => $start->toDateString(),
+            'week_number' => (int) $start->weekOfYear,
+            'year' => (int) $start->year,
+        ]);
         $sub = Subscription::factory()->create(['user_id' => $user->id, 'week_id' => $week->id]);
 
         $response = $this->deleteJson('/api/subscriptions/' . $sub->id);
@@ -132,11 +147,11 @@ class SubscriptionsControllerTest extends TestCase
         $this->actingAs($user, 'sanctum');
 
         // week in the past
-        $week = Week::factory()->create(['start_date' => now()->subDays(10)->toDateString()]);
+    $week = Week::factory()->create(['start_date' => now()->subDays(10)->toDateString()]);
 
         $response = $this->postJson('/api/subscriptions', ['week_id' => $week->id]);
         $response->assertStatus(400)
-            ->assertJson(['message' => 'Can only subscribe to current or future weeks']);
+            ->assertJson(['message' => 'Can only subscribe to next week']);
     }
 
     public function test_update_rejects_past_week_choices()
@@ -144,7 +159,7 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->subDays(5)->toDateString()]);
+    $week = Week::factory()->create(['start_date' => now()->subDays(5)->toDateString()]);
         $sub = Subscription::factory()->create(['user_id' => $user->id, 'week_id' => $week->id]);
 
         $response = $this->putJson('/api/subscriptions/' . $sub->id, ['week_id' => $week->id, 'choices' => []]);
@@ -157,8 +172,18 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $weekA = Week::factory()->create(['start_date' => now()->addDay()->toDateString()]);
-        $weekB = Week::factory()->create(['start_date' => now()->addDays(2)->toDateString()]);
+    $startA = now()->startOfWeek()->addWeek();
+    $weekA = Week::factory()->create([
+            'start_date' => $startA->toDateString(),
+            'week_number' => (int) $startA->weekOfYear,
+            'year' => (int) $startA->year,
+        ]);
+    $startB = now()->startOfWeek()->addWeeks(2);
+        $weekB = Week::factory()->create([
+            'start_date' => $startB->toDateString(),
+            'week_number' => (int) $startB->weekOfYear,
+            'year' => (int) $startB->year,
+        ]);
 
         $sub = Subscription::factory()->create(['user_id' => $user->id, 'week_id' => $weekA->id]);
 
@@ -176,8 +201,18 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->addDay()->toDateString()]);
-        $otherWeek = Week::factory()->create(['start_date' => now()->addDays(2)->toDateString()]);
+    $start = now()->startOfWeek()->addWeek();
+        $week = Week::factory()->create([
+            'start_date' => $start->toDateString(),
+            'week_number' => (int) $start->weekOfYear,
+            'year' => (int) $start->year,
+        ]);
+    $startOther = now()->startOfWeek()->addWeeks(2);
+        $otherWeek = Week::factory()->create([
+            'start_date' => $startOther->toDateString(),
+            'week_number' => (int) $startOther->weekOfYear,
+            'year' => (int) $startOther->year,
+        ]);
 
         $sub = Subscription::factory()->create(['user_id' => $user->id, 'week_id' => $week->id]);
 
@@ -196,7 +231,12 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->addDay()->toDateString()]);
+    $start = now()->startOfWeek()->addWeek();
+        $week = Week::factory()->create([
+            'start_date' => $start->toDateString(),
+            'week_number' => (int) $start->weekOfYear,
+            'year' => (int) $start->year,
+        ]);
         $sub = Subscription::factory()->create(['user_id' => $user->id, 'week_id' => $week->id]);
 
         // Create a week menu that belongs to the same week but has day_of_week = 2
@@ -214,7 +254,7 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->subDays(3)->toDateString()]);
+    $week = Week::factory()->create(['start_date' => now()->subDays(3)->toDateString()]);
         $sub = Subscription::factory()->create(['user_id' => $user->id, 'week_id' => $week->id]);
 
         $response = $this->deleteJson('/api/subscriptions/' . $sub->id);
@@ -227,7 +267,12 @@ class SubscriptionsControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->addDay()->toDateString()]);
+    $start = now()->startOfWeek()->addWeek();
+        $week = Week::factory()->create([
+            'start_date' => $start->toDateString(),
+            'week_number' => (int) $start->weekOfYear,
+            'year' => (int) $start->year,
+        ]);
 
         // force mock payment to fail
         $response = $this->postJson('/api/subscriptions', ['week_id' => $week->id, 'mock_charge_status' => 'failed']);
@@ -257,7 +302,12 @@ class SubscriptionsControllerTest extends TestCase
         $other = User::factory()->create();
         $this->actingAs($other, 'sanctum');
 
-        $week = Week::factory()->create(['start_date' => now()->addDay()->toDateString()]);
+        $start = now()->addDay();
+        $week = Week::factory()->create([
+            'start_date' => $start->toDateString(),
+            'week_number' => (int) $start->weekOfYear,
+            'year' => (int) $start->year,
+        ]);
         $sub = Subscription::factory()->create(['user_id' => $owner->id, 'week_id' => $week->id]);
 
         $response = $this->putJson('/api/subscriptions/' . $sub->id, ['week_id' => $week->id, 'choices' => []]);
