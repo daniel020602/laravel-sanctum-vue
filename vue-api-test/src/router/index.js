@@ -13,6 +13,7 @@ import MenuAdminView from '@/views/admin/MenuAdminView.vue'
 import WeeksAdminView from '@/views/admin/WeeksAdminView.vue'
 import AddNewWeek from '@/views/admin/AddNewWeek.vue'
 import EditWeekView from '@/views/admin/EditWeekView.vue'
+import SubscriptionView from '@/views/Subscription.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -92,6 +93,12 @@ const router = createRouter({
       name: 'admin-weeks-edit',
       component: EditWeekView,
       meta: { requiresAdmin: true, auth: true }
+    },
+    {
+      path: '/subscription',
+      name: 'subscription',
+      component: SubscriptionView,
+      meta: { auth: true }
     }
 
   ],
@@ -111,6 +118,7 @@ router.beforeEach(async (to, from) =>
   if (to.meta.requiresAdmin && (!authStore.user || !authStore.user.is_admin)) {
     return { name: 'home' } // or { path: '/' }
   }
+
 
 })
 export default router
