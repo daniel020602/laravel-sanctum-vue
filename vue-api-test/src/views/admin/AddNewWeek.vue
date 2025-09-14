@@ -126,6 +126,14 @@ function getDateOfISOWeek(week, year) {
     return ISOweekStart;
 }
 
+// format a Date as local YYYY-MM-DD to avoid UTC timezone shifts from toISOString
+function formatDateLocal(d) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
 watch([year, weekNumber], () => {
     const monday = getDateOfISOWeek(Number(weekNumber.value), Number(year.value));
     if (!monday) {
@@ -135,8 +143,8 @@ watch([year, weekNumber], () => {
     }
     const friday = new Date(monday);
     friday.setDate(monday.getDate() + 4);
-    startDate.value = monday.toISOString().slice(0,10);
-    endDate.value = friday.toISOString().slice(0,10);
+    startDate.value = formatDateLocal(monday);
+    endDate.value = formatDateLocal(friday);
 }, { immediate: true });
 
 onMounted(async () => {

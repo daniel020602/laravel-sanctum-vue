@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import { useWeeksStore } from '@/stores/weeks';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -112,6 +112,45 @@ const menus = ref([]);
 const soups = ref([]);
 const mains = ref([]);
 const result = ref(null);
+
+// compute start (Monday) for ISO week
+function getDateOfISOWeek(week, year) {
+  week = Number(week);
+  year = Number(year);
+  if (!Number.isFinite(week) || !Number.isFinite(year) || week < 1 || week > 53) {
+    return null;
+  }
+  const simple = new Date(year, 0, 1 + (week - 1) * 7);
+  if (isNaN(simple.getTime())) return null;
+  const dow = simple.getDay();
+  const ISOweekStart = new Date(simple);
+  // adjust to Monday
+  const dayDiff = (dow <= 1) ? (1 - dow) : (8 - dow);
+  ISOweekStart.setDate(simple.getDate() + dayDiff);
+  if (isNaN(ISOweekStart.getTime())) return null;
+  return ISOweekStart;
+}
+
+function formatDateLocal(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// when year or weekNumber changes, recompute start/end to Monday..Friday
+watch([year, weekNumber], () => {
+  const monday = getDateOfISOWeek(Number(weekNumber.value), Number(year.value));
+  if (!monday) {
+    startDate.value = '';
+    endDate.value = '';
+    return;
+  }
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  startDate.value = formatDateLocal(monday);
+  endDate.value = formatDateLocal(friday);
+}, { immediate: false });
 
 onMounted(async () => {
   try {

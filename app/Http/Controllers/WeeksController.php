@@ -28,10 +28,7 @@ class WeeksController extends Controller
         if ($user && $user->is_admin) {
             $weeks = Week::orderBy('start_date', 'asc')->get();
         } else {
-            $currentWeek = now()->weekOfYear;
-            $weeks = Week::where('week_number', '>=', $currentWeek)
-                ->orderBy('start_date', 'asc')
-                ->get();
+            return response()->json(['message' => 'Access denied to past weeks.'], 403);
         }
         return response()->json([
             'weeks' => $weeks
@@ -40,6 +37,21 @@ class WeeksController extends Controller
     public function show($id)
     {
         $user = request()->user();
+        if($id == '-1')
+        {
+            // return the next week's record for non-admins
+            $nextWeekNumber = now()->weekOfYear + 1;
+            $week = Week::query()
+                ->where('week_number', $nextWeekNumber)
+                ->where('year', now()->year)
+                ->first();
+
+            $weekMenus = WeekMenu::where('week_id', $week->id)->get();
+            return response()->json([
+                'week' => $week,
+                'menus' => $weekMenus
+            ]);
+        }
         $week = Week::findOrFail($id);
 
         if (!($user && $user->is_admin)) {

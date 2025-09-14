@@ -7,6 +7,7 @@ export const useWeeksStore = defineStore("weeks", {
     items: [],
     menus: [],
     isLoading: false,
+    week: null,
   }),
   getters: {
     soups: (state) => state.menus.filter(m => m.type === 'soup'),
@@ -54,6 +55,7 @@ export const useWeeksStore = defineStore("weeks", {
       if (!res.ok) throw new Error('Failed to fetch menus');
       const data = await res.json();
       this.menus = Array.isArray(data) ? data : (data.data ?? []);
+      return this.menus;
     },
     async fetchWeek(id) {
       const headers = {};

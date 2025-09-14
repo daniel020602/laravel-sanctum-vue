@@ -14,6 +14,7 @@ import WeeksAdminView from '@/views/admin/WeeksAdminView.vue'
 import AddNewWeek from '@/views/admin/AddNewWeek.vue'
 import EditWeekView from '@/views/admin/EditWeekView.vue'
 import SubscriptionView from '@/views/Subscription.vue'
+import PayForSubscription from '@/views/PayForSubscription.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -98,6 +99,12 @@ const router = createRouter({
       path: '/subscription',
       name: 'subscription',
       component: SubscriptionView,
+      meta: { auth: true }
+    },
+    {
+      path: '/pay-for-subscription/:id',
+      name: 'pay-for-subscription',
+      component: PayForSubscription,
       meta: { auth: true }
     }
 
