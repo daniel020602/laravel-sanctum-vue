@@ -9,7 +9,8 @@ export const useSubscriptionStore = defineStore("subscription", {
     actions: {
         async createSubscription(weekId) {
             const authStore = useAuthStore();
-            const token = authStore.token;
+            // auth store may not expose token directly; fall back to localStorage
+            const token = authStore.token ?? localStorage.getItem('token');
 
             try {
                 const response = await fetch("/api/subscriptions", {
@@ -22,6 +23,19 @@ export const useSubscriptionStore = defineStore("subscription", {
                 });
 
                 if (!response.ok) {
+                    let body = null;
+                    try {
+                        body = await response.json();
+                    } catch (e) {
+                        body = await response.text();
+                    }
+
+                    if (response.status === 401) {
+                        console.error('Unauthorized when creating subscription:', body);
+                        throw new Error('Unauthorized');
+                    }
+
+                    console.error('Failed to create subscription, status:', response.status, 'body:', body);
                     throw new Error('Failed to create subscription');
                 }
 
