@@ -95,5 +95,49 @@ export const useWeeksStore = defineStore("weeks", {
       const body = await res.json().catch(() => null);
       return { status: res.status, body };
     },
+    async fetchNextWeek() {
+      this.isLoading = true;
+      const authStore = useAuthStore();
+      const token = authStore.token;
+      console.log(token);
+
+      try {
+        const response = await fetch("/api/weeks/next-week", {
+          headers: {
+            Authorization: 'Bearer ' + localStorage.getItem('token'),
+          },
+        });
+
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          // non-JSON response — log raw text to help debug server side issues
+          console.error('fetchNextWeek: server returned non-JSON response:', text);
+          throw new Error('Server returned non-JSON response');
+        }
+
+        this.week = data.week ?? data;
+        console.log('fetchNextWeek parsed response:', data);
+      } catch (error) {
+        console.error("Error fetching next week:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async fetchWeeklySummary(weekId) {
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      const res = await fetch(`/api/subscriptions/weekly-summary/${weekId}`, { headers });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || 'Failed to fetch weekly summary');
+      }
+      const data = await res.json();
+      return data;
+    }
   },
 });

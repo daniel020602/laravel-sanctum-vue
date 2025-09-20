@@ -43,18 +43,102 @@ class AuthController extends Controller
         $request->user()->tokens()->delete();
         return ['message' => 'Logged out'];
     }
-    public function changeData(Request $request)
+    public function listUsers(Request $request)
     {
-        $user = $request->user();
+        if (!($request->user() && $request->user()->is_admin)) {
+            return response()->json(['message' => 'Access denied'], 403);
+        }
+        $users = User::select('id', 'name', 'email', 'phone', 'address')->get();
+
+        return response()->json([
+            'users' => $users
+        ]);
+    }
+    public function showUser($id, Request $request)
+    {
+        if (!($request->user() && $request->user()->is_admin)) {
+            return response()->json(['message' => 'Access denied'], 403);
+        }
+        $user = User::select('id', 'name', 'email', 'phone', 'address')->find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        return response()->json([
+            'user' => $user
+        ]);
+    }
+    public function deleteUser($id, Request $request)
+    {
+        if (!($request->user() && $request->user()->is_admin)) {
+            return response()->json(['message' => 'Access denied'], 403);
+        }
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        $user->delete();
+        return response()->json(['message' => 'User deleted successfully'], 200);
+    }   
+    public function promoteUser($id, Request $request)
+    {
+        if (!($request->user() && $request->user()->is_admin)) {
+            return response()->json(['message' => 'Access denied'], 403);
+        }
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        $user->is_admin = true;
+        $user->save();
+        return response()->json([
+            'message' => 'User promoted to admin successfully',
+            'user' => $user
+        ], 200);
+    }
+    public function demoteUser($id, Request $request)
+    {
+        if (!($request->user() && $request->user()->is_admin)) {
+            return response()->json(['message' => 'Access denied'], 403);
+        }
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        $user->is_admin = false;
+        $user->save();
+        return response()->json([
+            'message' => 'User demoted to regular user successfully',
+            'user' => $user
+        ], 200);
+    }
+    public function changeData($id = null, Request $request)
+    {
+        // If an id is provided, only admins may change another user's data.
+        if ($id) {
+            if (!($request->user() && $request->user()->is_admin)) {
+                return response()->json(['message' => 'Access denied'], 403);
+            }
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['message' => 'User not found'], 404);
+            }
+        } else {
+            // no id: update own data
+            $user = $request->user();
+            if (! $user) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+        }
+
         $fields = $request->validate([
-            'phone' => 'nullable|string|max:15|regex:/^\+?[0-9]{1,15}$/',
-            'address' => 'nullable|string|max:255',
+            'phone' => 'sometimes|string|max:15|regex:/^\+?[0-9]{1,15}$/',
+            'address' => 'sometimes|string|max:255',
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
         ]);
 
         $user->fill($fields)->save();
 
         return response()->json(['message' => 'User data updated successfully', 'user' => $user], 200);
     }
-
-
 }

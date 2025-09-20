@@ -7,6 +7,36 @@ export const useSubscriptionStore = defineStore("subscription", {
         subscriptions: []
     }),
     actions: {
+        async fetchSubscriptions() {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch('/api/subscriptions/user-week', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error('Failed to fetch subscriptions');
+                const data = await res.json();
+                // controller returns { subscriptions: [...] }
+                this.subscriptions = data.subscriptions ?? data;
+            } catch (e) {
+                console.error('fetchSubscriptions error', e);
+            }
+        },
+        async fetchUserWeek() {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch('/api/subscriptions/user-week', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.status === 404) return null; // no subscription for next week
+                if (!res.ok) throw new Error('Failed to fetch user-week subscription');
+                const data = await res.json();
+                // returns { subscription, choices }
+                return data;
+            } catch (e) {
+                console.error('fetchUserWeek error', e);
+                throw e;
+            }
+        },
         async createSubscription(weekId) {
             const authStore = useAuthStore();
             // auth store may not expose token directly; fall back to localStorage
@@ -43,6 +73,51 @@ export const useSubscriptionStore = defineStore("subscription", {
                 this.subscriptions.push(data);
             } catch (error) {
                 console.error('Error creating subscription:', error);
+            }
+        },
+        
+
+        async updateSubscription(id, weekId, choices = []) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`/api/subscriptions/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ week_id: weekId, choices })
+                });
+                if (!res.ok) {
+                    let body = null;
+                    try { body = await res.json(); } catch(e) { body = await res.text(); }
+                    throw new Error('Update subscription failed: ' + (body && body.message ? body.message : JSON.stringify(body)));
+                }
+                const data = await res.json();
+                // optionally refresh subscriptions list
+                await this.fetchSubscriptions();
+                return data;
+            } catch (e) {
+                console.error('updateSubscription error', e);
+                throw e;
+            }
+        }
+        ,
+        async deleteSubscription(id) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`/api/subscriptions/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) {
+                    let body = null;
+                    try { body = await res.json(); } catch(e) { body = await res.text(); }
+                    throw new Error('Delete subscription failed: ' + (body && body.message ? body.message : JSON.stringify(body)));
+                }
+                // refresh list
+                await this.fetchSubscriptions();
+                return true;
+            } catch (e) {
+                console.error('deleteSubscription error', e);
+                throw e;
             }
         }
     }

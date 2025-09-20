@@ -51,16 +51,22 @@ const week = ref(null);
 const weekMappings = ref(null);
 onMounted(async () => {
     try {
-        // fetch the next week (controller ignores id for non-admin and returns next week)
-        const res = await weeksStore.fetchWeek(-1);
+        // fetch the next week into the store (fetchNextWeek sets weeksStore.week)
+        await weeksStore.fetchNextWeek();
         // fetch menus into the store, then read them
         await weeksStore.fetchMenus();
         menus.value = weeksStore.menus;
 
-    week.value = res.week;
+    week.value = weeksStore.week;
 
-    // transform flat week menu rows into 5 day mappings { soup, a, b, c }
-    const flat = res.menus;
+    if (!week.value) {
+        console.warn('No next week available');
+        return;
+    }
+
+    // fetch the week record (with its week_menus) so we have the flat menu rows
+    const weekData = await weeksStore.fetchWeek(week.value.id);
+    const flat = weekData.menus ?? weekData.week_menus ?? [];
     const days = [
         { soup: null, a: null, b: null, c: null },
         { soup: null, a: null, b: null, c: null },

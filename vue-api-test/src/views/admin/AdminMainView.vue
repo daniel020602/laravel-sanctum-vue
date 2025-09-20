@@ -11,7 +11,9 @@
             <RouterLink :to="{name: 'admin-weeks'}">
                 <div class="admin-item">heti menü kiírása</div>
             </RouterLink>
-            <div class="admin-item"></div>
+            <RouterLink :to="{name: 'admin-users'}">
+                <div class="admin-item">felhasználók kezelése</div>
+            </RouterLink>
         </div>
     </div>
 </template>

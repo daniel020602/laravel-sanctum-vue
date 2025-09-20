@@ -37,21 +37,6 @@ class WeeksController extends Controller
     public function show($id)
     {
         $user = request()->user();
-        if($id == '-1')
-        {
-            // return the next week's record for non-admins
-            $nextWeekNumber = now()->weekOfYear + 1;
-            $week = Week::query()
-                ->where('week_number', $nextWeekNumber)
-                ->where('year', now()->year)
-                ->first();
-
-            $weekMenus = WeekMenu::where('week_id', $week->id)->get();
-            return response()->json([
-                'week' => $week,
-                'menus' => $weekMenus
-            ]);
-        }
         $week = Week::findOrFail($id);
 
         if (!($user && $user->is_admin)) {
@@ -192,5 +177,19 @@ class WeeksController extends Controller
         return response()->json([
             'message' => 'Week and related menus deleted successfully.'
         ], 200);
+    }
+    public function nextWeek()
+    {
+        $nextWeekNumber = now()->weekOfYear + 1;
+            $week = Week::query()
+                ->where('week_number', $nextWeekNumber)
+                ->where('year', now()->year)
+                ->first();
+
+            $weekMenus = WeekMenu::where('week_id', $week->id)->get();
+            return response()->json([
+                'week' => $week,
+                'menus' => $weekMenus
+            ]);
     }
 }

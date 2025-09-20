@@ -35,9 +35,7 @@ class SubscriptionsController extends Controller
 
     public function show($id){
 
-       /* echo 'here';
-        $this->authorize('admin');
-        echo 'here2';*/
+
         $subscription = Subscription::find($id);
         $subscriptionChoices = SubscriptionChoice::where('subscription_id', $id)->get();
         if(!$subscription) {
@@ -109,8 +107,16 @@ class SubscriptionsController extends Controller
             abort(403);
         }
         $week = Week::findOrFail($subscription->week_id);
-        if($week->start_date < now()->toDateString()){
-            return response()->json(['message' => 'Can only change future week choices'], 400);
+        // Guard against editing choices for weeks that have already started.
+        // Allow an exception when the week record represents the upcoming week (by week_number/year)
+        $startDate = Carbon::parse($week->start_date);
+        $today = Carbon::today();
+        $nextWeek = Carbon::now()->addWeek();
+        if ($startDate->lessThan($today)) {
+            $isNextWeek = ((int)$week->week_number === $nextWeek->weekOfYear) && ((int)$week->year === $nextWeek->year);
+            if (! $isNextWeek) {
+                return response()->json(['message' => 'Can only change future week choices'], 400);
+            }
         }
         $request->validate([
             'week_id' => 'required|exists:weeks,id',
@@ -172,8 +178,16 @@ class SubscriptionsController extends Controller
             abort(403);
         }
         $week = Week::findOrFail($subscription->week_id);
-        if($week->start_date < now()->toDateString()){
-            return response()->json(['message' => 'Can only change future week choices'], 400);
+        // Guard against deleting subscriptions for weeks that have already started.
+        // Allow an exception when the week record represents the upcoming week (by week_number/year)
+        $startDate = Carbon::parse($week->start_date);
+        $today = Carbon::today();
+        $nextWeek = Carbon::now()->addWeek();
+        if ($startDate->lessThan($today)) {
+            $isNextWeek = ((int)$week->week_number === $nextWeek->weekOfYear) && ((int)$week->year === $nextWeek->year);
+            if (! $isNextWeek) {
+                return response()->json(['message' => 'Can only change future week choices'], 400);
+            }
         }
         // Delete associated choices first
         SubscriptionChoice::where('subscription_id', $subscription->id)->delete();
@@ -181,5 +195,73 @@ class SubscriptionsController extends Controller
 
         return response()->json(['message' => 'Subscription deleted'], 200);
     }
+    public function userWeek() {
+        $user = Auth::user();
+        $nextWeekNumber = now()->weekOfYear + 1;
+        $currentYear = now()->year;
+        $week = Week::where('week_number', $nextWeekNumber)
+                    ->where('year', $currentYear)
+                    ->first();
 
+        if (! $week) {
+            return response()->json(['message' => 'Week not found'], 404);
+        }
+
+        $subscription = Subscription::where('user_id', $user->id)
+            ->where('week_id', $week->id)
+            ->first();
+
+        if (! $subscription) {
+            return response()->json(['message' => 'Subscription not found'], 404);
+        }
+
+        $subscriptionChoices = SubscriptionChoice::where('subscription_id', $subscription->id)->get();
+        return response()->json([
+            'subscription' => $subscription,
+            'choices' => $subscriptionChoices
+        ]);
+    }
+
+    // Admin: return counts per day and option for a given week
+    public function weeklySummary($weekId, Request $request)
+    {
+        // only admins
+        if (!($request->user() && $request->user()->is_admin)) {
+            return response()->json(['message' => 'Access denied'], 403);
+        }
+
+        $week = Week::find($weekId);
+        if (! $week) {
+            return response()->json(['message' => 'Week not found'], 404);
+        }
+
+        // Aggregate counts by day_of_week and option (a/b/c/soup)
+        $rows = DB::table('subscription_choices as sc')
+            ->join('week_menus as wm', 'sc.week_menu_id', '=', 'wm.id')
+            ->select('wm.day_of_week as day', 'wm.option as option', DB::raw('count(sc.id) as count'))
+            ->where('wm.week_id', $weekId)
+            ->groupBy('wm.day_of_week', 'wm.option')
+            ->get();
+
+        // Normalize into days 1..5 and options a,b,c (and soup)
+        $summary = [];
+        for ($d = 1; $d <= 5; $d++) {
+            $summary[$d] = ['soup' => 0, 'a' => 0, 'b' => 0, 'c' => 0];
+        }
+
+        foreach ($rows as $r) {
+            $day = (int) $r->day;
+            $opt = strtolower($r->option ?? 'a');
+            if (! isset($summary[$day])) continue;
+            if (! in_array($opt, ['soup','a','b','c'])) $opt = 'a';
+            $summary[$day][$opt] = (int) $r->count;
+        }
+
+        return response()->json([
+            'week_id' => $weekId,
+            'week_number' => $week->week_number,
+            'year' => $week->year,
+            'summary' => $summary,
+        ]);
+    }
 }

@@ -15,6 +15,8 @@ import AddNewWeek from '@/views/admin/AddNewWeek.vue'
 import EditWeekView from '@/views/admin/EditWeekView.vue'
 import SubscriptionView from '@/views/Subscription.vue'
 import PayForSubscription from '@/views/PayForSubscription.vue'
+import EditSubscriptionsView from '@/views/EditSubscriptionsView.vue'
+import AdminUsersView from '@/views/admin/AdminUsersView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -61,6 +63,12 @@ const router = createRouter({
       meta:{auth:true}
     },
     {
+      path: '/userdata/:id',
+      name: 'userdata-admin',
+      component: UserDataView,
+      meta:{auth:true}
+    },
+    {
       path: '/menu',
       name: 'menu',
       component: Menu
@@ -96,6 +104,12 @@ const router = createRouter({
       meta: { requiresAdmin: true, auth: true }
     },
     {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: AdminUsersView,
+      meta: { requiresAdmin: true, auth: true }
+    },
+    {
       path: '/subscription',
       name: 'subscription',
       component: SubscriptionView,
@@ -105,6 +119,12 @@ const router = createRouter({
       path: '/pay-for-subscription/:id',
       name: 'pay-for-subscription',
       component: PayForSubscription,
+      meta: { auth: true }
+    },
+    {
+      path: '/subscription-edit/:id',
+      name: 'subscription-edit',
+      component: EditSubscriptionsView,
       meta: { auth: true }
     }
 

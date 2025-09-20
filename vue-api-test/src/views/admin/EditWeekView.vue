@@ -3,23 +3,41 @@
     <h1 class="text-2xl mb-4">Hét szerkesztése</h1>
     <h2 class="text-lg mb-4"><RouterLink :to="{ name: 'admin-weeks' }" class="primary-btn">vissza a hetekehez</RouterLink></h2>
 
+  <!-- Weekly summary for past weeks (admin) -->
+    <div v-if="summary" class="mb-4 p-4 bg-gray-50 rounded">
+      <h3 class="font-semibold">Összegzés: {{ summary.year }} - {{ summary.week_number }}. hét</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-2">
+        <div v-for="d in [1,2,3,4,5]" :key="d" class="p-2 border rounded">
+          <div class="font-semibold">{{ dayLabels[d] }}</div>
+          <div>Leves: {{ summary.summary[d].soup }}</div>
+          <div>A: {{ summary.summary[d].a }}</div>
+          <div>B: {{ summary.summary[d].b }}</div>
+          <div>C: {{ summary.summary[d].c }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="isPast" class="mb-4 p-3 bg-yellow-50 border rounded text-sm text-yellow-800">
+      Ez a hét múltbeli, a szerkesztés le van tiltva — csak a mentett értékek láthatók.
+    </div>
+
     <form @submit.prevent="submitForm">
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
           <label class="block">Év</label>
-          <input v-model.number="year" type="number" class="w-full" />
+          <input v-model.number="year" type="number" class="w-full" :disabled="isPast" />
         </div>
         <div>
           <label class="block">Hét száma</label>
-          <input v-model.number="weekNumber" type="number" class="w-full" />
+          <input v-model.number="weekNumber" type="number" class="w-full" :disabled="isPast" />
         </div>
         <div>
           <label class="block">Kezdő dátum</label>
-          <input v-model="startDate" type="date" class="w-full" />
+          <input v-model="startDate" type="date" class="w-full" :disabled="isPast" />
         </div>
         <div>
           <label class="block">Záró dátum</label>
-          <input v-model="endDate" type="date" class="w-full" />
+          <input v-model="endDate" type="date" class="w-full" :disabled="isPast" />
         </div>
       </div>
 
@@ -29,7 +47,7 @@
         <div class="grid grid-cols-4 gap-3 ">
           <div>
             <label class="block">Leves</label>
-            <select v-model.number="day.soup" class="w-full">
+            <select v-model.number="day.soup" class="w-full" :disabled="isPast">
               <option :value="null">-- válassz --</option>
               <option v-for="m in soups" :key="m.id" :value="m.id">{{ m.name }}</option>
             </select>
@@ -37,7 +55,7 @@
 
           <div>
             <label class="block">A</label>
-            <select v-model.number="day.a" class="w-full">
+            <select v-model.number="day.a" class="w-full" :disabled="isPast">
               <option :value="null">-- válassz --</option>
               <option v-for="m in mains" :key="m.id + '-a'" :value="m.id">{{ m.name }}</option>
             </select>
@@ -45,7 +63,7 @@
 
           <div>
             <label class="block">B</label>
-            <select v-model.number="day.b" class="w-full">
+            <select v-model.number="day.b" class="w-full" :disabled="isPast">
               <option :value="null">-- válassz --</option>
               <option v-for="m in mains" :key="m.id + '-b'" :value="m.id">{{ m.name }}</option>
             </select>
@@ -53,7 +71,7 @@
 
           <div>
             <label class="block">C</label>
-            <select v-model.number="day.c" class="w-full">
+            <select v-model.number="day.c" class="w-full" :disabled="isPast">
               <option :value="null">-- válassz --</option>
               <option v-for="m in mains" :key="m.id + '-c'" :value="m.id">{{ m.name }}</option>
             </select>
@@ -62,7 +80,7 @@
       </div>
 
       <div class="flex gap-3">
-        <button type="submit" class="primary-btn">Mentés</button>
+        <button v-if="!isPast" type="submit" class="primary-btn">Mentés</button>
         <button type="button" @click="resetForm" class="btn">Visszaállít</button>
       </div>
     </form>
@@ -112,6 +130,9 @@ const menus = ref([]);
 const soups = ref([]);
 const mains = ref([]);
 const result = ref(null);
+const summary = ref(null);
+const isPast = ref(false);
+const dayLabels = { 1: 'Hétfő', 2: 'Kedd', 3: 'Szerda', 4: 'Csütörtök', 5: 'Péntek' };
 
 // compute start (Monday) for ISO week
 function getDateOfISOWeek(week, year) {
@@ -209,6 +230,20 @@ onMounted(async () => {
         if (!menuId) continue;
         const opt = String(item.option ?? '').toLowerCase();
         if (opt === 'soup') ensureInList(menuId, 'soup'); else ensureInList(menuId, 'main');
+      }
+
+      // Determine if this week is in the past (end date before today)
+      try {
+        const weeksStore = useWeeksStore();
+        const nowDate = new Date();
+        isPast.value = new Date(data.week.end_date) < nowDate;
+        if (isPast.value) {
+          const s = await weeksStore.fetchWeeklySummary(data.week.id);
+          summary.value = s;
+        }
+      } catch (e) {
+        // ignore summary errors (not critical for editing)
+        console.error('Failed to load weekly summary', e);
       }
     }
   } catch (e) {

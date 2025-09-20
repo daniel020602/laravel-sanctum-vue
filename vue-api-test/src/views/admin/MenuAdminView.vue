@@ -10,6 +10,8 @@
             <input v-model="query" type="search" placeholder="Keresés név szerint" />
         </div>
 
+        
+
     <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 justify-items-center pb-4 max-h-96 overflow-y-auto">
             <li v-for="(menu) in filteredItems" :key="menu.id" class="bg-amber-50 p-4 rounded text-center w-80 shadow">
                 <div v-if="editingId !== menu.id">
@@ -50,7 +52,7 @@
 </template>
 
 <script setup>
-    import { onMounted, ref, computed, reactive} from 'vue'
+    import { onMounted, ref, computed, reactive } from 'vue'
     import { useMenuStore } from '@/stores/menus'
 
     const menuStore = useMenuStore()
@@ -79,16 +81,12 @@
     console.log(menuStore.items)
 
     async function handleCreate() {
-        // spread reactive formData into a plain object so the backend receives
-        // { name, price, type } instead of { formData: { ... } }
         const payload = { ...formData }
         const res = await menuStore.createMenuItem(payload)
         if (res && res.errors) {
-            // TODO: show validation/auth errors in the UI
             console.error('Create menu errors', res.errors)
             errors.value = res.errors
         } else {
-            // reset form
             formData.name = ''
             formData.price = ''
             formData.type = ''
