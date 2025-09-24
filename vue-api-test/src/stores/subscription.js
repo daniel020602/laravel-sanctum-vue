@@ -98,8 +98,7 @@ export const useSubscriptionStore = defineStore("subscription", {
                 console.error('updateSubscription error', e);
                 throw e;
             }
-        }
-        ,
+        },
         async deleteSubscription(id) {
             const token = localStorage.getItem('token');
             try {
@@ -117,6 +116,23 @@ export const useSubscriptionStore = defineStore("subscription", {
                 return true;
             } catch (e) {
                 console.error('deleteSubscription error', e);
+                throw e;
+            }
+        },
+        async searchUserByEmail(email) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`/api/auth/search-user?query=${encodeURIComponent(email)}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (res.status === 404) return null; // user not found
+                if (!res.ok) throw new Error('Failed to search user');
+                const data = await res.json();
+                return data.user ?? data;
+            } catch (e) {
+                console.error('searchUserByEmail error', e);
                 throw e;
             }
         }

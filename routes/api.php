@@ -30,6 +30,7 @@ Route::put('/auth/change-data/{id}', [AuthController::class, 'changeData'])->mid
 Route::delete('/auth/delete-user/{id}', [AuthController::class, 'deleteUser'])->middleware('auth:sanctum');
 Route::post('/auth/promote/{id}', [AuthController::class, 'promoteUser'])->middleware('auth:sanctum');
 Route::post('/auth/demote/{id}', [AuthController::class, 'demoteUser'])->middleware('auth:sanctum');
+Route::get('/auth/search-user', [AuthController::class, 'searchUser'])->middleware('auth:sanctum');
 
 Route::apiResource('menus', MenuController::class);
 

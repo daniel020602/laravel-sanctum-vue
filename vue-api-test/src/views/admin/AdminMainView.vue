@@ -14,6 +14,9 @@
             <RouterLink :to="{name: 'admin-users'}">
                 <div class="admin-item">felhasználók kezelése</div>
             </RouterLink>
+            <RouterLink :to="{name: 'admin-menu-handout'}">
+                <div class="admin-item">menü kiadása</div>
+            </RouterLink>
         </div>
     </div>
 </template>

@@ -17,6 +17,7 @@ import SubscriptionView from '@/views/Subscription.vue'
 import PayForSubscription from '@/views/PayForSubscription.vue'
 import EditSubscriptionsView from '@/views/EditSubscriptionsView.vue'
 import AdminUsersView from '@/views/admin/AdminUsersView.vue'
+import MenuHandoutView from '@/views/admin/MenuHandoutView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -126,8 +127,13 @@ const router = createRouter({
       name: 'subscription-edit',
       component: EditSubscriptionsView,
       meta: { auth: true }
+    },
+    {
+      path: '/admin/menu-handout',
+      name: 'admin-menu-handout',
+      component: MenuHandoutView,
+      meta: { requiresAdmin: true, auth: true }
     }
-
   ],
 })
 router.beforeEach(async (to, from) => 

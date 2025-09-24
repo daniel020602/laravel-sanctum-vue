@@ -6,6 +6,10 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Subscription;
+use App\Models\Week;
+use App\Models\SubscriptionChoice;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -140,5 +144,50 @@ class AuthController extends Controller
         $user->fill($fields)->save();
 
         return response()->json(['message' => 'User data updated successfully', 'user' => $user], 200);
+    }
+    public function searchUser(Request $request)
+    {
+        if (!(Auth::user() && Auth::user()->is_admin)) {
+            return response()->json(['message' => 'Access denied'], 403);
+        }
+
+        $query = $request->input('query');
+
+        if (!$query) {
+            return response()->json(['message' => 'Query parameter is required'], 400);
+        }
+
+        $users = User::where('email', 'LIKE', "$query%")
+            ->select('id', 'name', 'email')
+            ->get();
+
+        if ($users->isEmpty()) {
+            return response()->json(['message' => 'No users found'], 404);
+        }
+
+        $subscriptions = Subscription::whereIn('user_id', $users->pluck('id'))
+            ->with('week')
+            ->get();
+
+        if ($subscriptions->isEmpty()) {
+            return response()->json(['message' => 'No subscriptions found for the matched users'], 404);
+        }
+
+        $currentWeekNumber = (int) now()->weekOfYear;
+        $currentYear = (int) now()->year;
+
+        $subscriptions = $subscriptions->filter(function ($s) use ($currentWeekNumber, $currentYear) {
+            return $s->week &&
+                ((int) $s->week->week_number === $currentWeekNumber) &&
+                ((int) $s->week->year === $currentYear);
+        })->values();
+
+        if ($subscriptions->isEmpty()) {
+            return response()->json(['message' => 'No subscriptions found for the current week'], 404);
+        }
+
+        $choices = SubscriptionChoice::whereIn('subscription_id', $subscriptions->pluck('id'))->with('weekMenu')->get();
+
+        return response()->json(['users' => $users, 'subscriptions' => $subscriptions, 'choices' => $choices], 200);
     }
 }
