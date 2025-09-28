@@ -9,6 +9,7 @@
     <div class="mt-4 bg-gray-100 p-4 rounded">
         <p class="mt-2">Thank you for your reservation!</p>
         <p class="mt-2">Your reservation code is: <strong>{{ $reservation_code }}</strong></p>
+        <p class="mt-2">Your reservation ID is: <strong>{{ $id }}</strong></p>
     </div>
 </body>
 </html>

@@ -64,3 +64,38 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Local email testing (Mailpit) and Mailgun
+
+For local development you can run Mailpit (a lightweight SMTP web UI) using Docker Compose included in `docker/mailpit/docker-compose.yml`:
+
+```powershell
+# from project root
+docker compose -f docker\mailpit\docker-compose.yml up -d
+```
+
+Mailpit will expose an SMTP server on port 1025 and a web UI on port 8025 (http://localhost:8025).
+
+Development mail settings (add to your `.env` or `.env.local`):
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=hello@example.com
+MAIL_FROM_NAME="Example"
+```
+
+If you want to test with Mailgun in a staging environment, set the following in your `.env`:
+
+```
+MAIL_MAILER=mailgun
+MAILGUN_DOMAIN=mg.example.test
+MAILGUN_SECRET=your-mailgun-key
+MAILGUN_ENDPOINT=api.mailgun.net
+```
+
+Note: Mailpit is for local development only and does not send emails externally.

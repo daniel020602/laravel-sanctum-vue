@@ -18,6 +18,8 @@ import PayForSubscription from '@/views/PayForSubscription.vue'
 import EditSubscriptionsView from '@/views/EditSubscriptionsView.vue'
 import AdminUsersView from '@/views/admin/AdminUsersView.vue'
 import MenuHandoutView from '@/views/admin/MenuHandoutView.vue'
+import TableAdminView from '@/views/admin/TableAdminView.vue'
+import NewReservationView from '@/views/NewReservationView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -133,6 +135,17 @@ const router = createRouter({
       name: 'admin-menu-handout',
       component: MenuHandoutView,
       meta: { requiresAdmin: true, auth: true }
+    },
+    {
+      path: '/admin/tables',
+      name: 'admin-tables',
+      component: TableAdminView,
+      meta: { requiresAdmin: true, auth: true }
+    },
+    {
+      path: '/reservations/new',
+      name: 'new-reservation',
+      component: NewReservationView,
     }
   ],
 })

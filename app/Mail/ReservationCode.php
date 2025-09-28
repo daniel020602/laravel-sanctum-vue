@@ -18,11 +18,13 @@ class ReservationCode extends Mailable
     /**
      * Create a new message instance.
      */
-    public $reservation_code;
+    protected $reservation_code;
+    protected $id;
 
-    public function __construct($reservation_code)
+    public function __construct($reservation_code, $id)
     {
         $this->reservation_code = $reservation_code;
+        $this->id = $id;
     }
 
     /**
@@ -45,6 +47,7 @@ class ReservationCode extends Mailable
             view: 'mail',
             with: [
                 'reservation_code' => $this->reservation_code,
+                'id' => $this->id,
             ],
         );
     }

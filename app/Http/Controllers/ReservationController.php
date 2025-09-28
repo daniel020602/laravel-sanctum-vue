@@ -34,9 +34,11 @@ class ReservationController extends Controller
         $data = $request->validated();
         $ResCode = Str::random(10); // Use Str::random() directly
         $data['reservation_code'] = $ResCode; // Generate a random reservation code
-        Mail::to($data['email'])->send(new ReservationCode($ResCode)); // Send the reservation code via email
-
         $reservation = Reservation::create($data);
+
+        Mail::to($data['email'])->send(new ReservationCode($ResCode, $reservation->id)); // Send the reservation code via email
+
+
         return response()->json([
             'message' => 'Reservation created successfully',
             'reservation' => $reservation

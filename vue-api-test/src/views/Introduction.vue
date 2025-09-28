@@ -3,18 +3,19 @@
         <div class="text-center">
             <h1 class="title">Üdvözöljük A Duna Bisztró weboldalán!</h1>
             <p>Fedezze fel ínycsiklandó ételeinket és barátságos légkörünket!</p>
-            <RouterLink :class="{ 'text-blue-500 hover:underline': true }" :to="{ name: 'menu' }">Tekintse meg menünket</RouterLink>
+            <RouterLink class="block text-blue-500 hover:underline" :to="{ name: 'menu' }">Tekintse meg menünket</RouterLink>
             <br/>
-            <RouterLink :class="{ 'text-blue-500 hover:underline': true }" :to="{ name: 'subscription' }">Iratkozzon fel a jövő heti menüre</RouterLink>
+            <RouterLink v-if="subscription" class="block text-blue-500 hover:underline" :to="{ name: 'subscription-edit', params: { id: subscription.id } }">Heti Menü módosítása</RouterLink>
+            <RouterLink v-else class="block text-blue-500 hover:underline" :to="{ name: 'subscription' }">Feliratkozás a heti menüre</RouterLink>
             <br/>
-            <RouterLink v-if="subscription" :class="{ 'text-blue-500 hover:underline': true }" :to="{ name: 'subscription-edit', params: { id: subscription.id } }">Heti Menü módosítása</RouterLink>
+            <RouterLink class="block text-blue-500 hover:underline" :to="{ name: 'new-reservation' }">asztalfoglalás</RouterLink>
         </div>
     </main>
 </template>
 
 <script setup>
 import { useSubscriptionStore } from "@/stores/subscription";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, Text } from "vue";
 
 const subscription = ref(null);
 const error = ref(null);
