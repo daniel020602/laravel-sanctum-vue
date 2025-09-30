@@ -28,7 +28,10 @@ class WeeksController extends Controller
         if ($user && $user->is_admin) {
             $weeks = Week::orderBy('start_date', 'asc')->get();
         } else {
-            return response()->json(['message' => 'Access denied to past weeks.'], 403);
+            $currentWeek = now()->weekOfYear;
+            $weeks = Week::where('week_number', '>=', $currentWeek)
+                ->orderBy('start_date', 'asc')
+                ->get();
         }
         return response()->json([
             'weeks' => $weeks
@@ -139,16 +142,20 @@ class WeeksController extends Controller
                     ];
                 }
             }
-            
-            // Ensure week_menus table reflects the provided payload. Use DB table calls
-            // because the Week model defines the relation as `week_menus()` (snake_case).
-            DB::table('week_menus')->where('week_id', $week->id)->delete();
 
             if (!empty($records)) {
-                DB::table('week_menus')->insert($records);
+                // Upsert to update or insert menu options for the week
+                DB::table('week_menus')->upsert(
+                    $records,
+                    ['week_id', 'day_of_week', 'option'],
+                    ['menu_id', 'updated_at']
+                );
             }
 
-            $weekMenus = DB::table('week_menus')->where('week_id', $week->id)->get();
+            // load related menus for response
+            $weekMenus = DB::table('week_menus')
+                ->where('week_id', $week->id)
+                ->get();
 
             return response()->json([
                 'message' => 'Week menus updated successfully',
@@ -164,10 +171,7 @@ class WeeksController extends Controller
         $this->authorize('admin', Week::class);
 
         $week = Week::findOrFail($id);
-        if ($week->week_number < now()->week()+2) {
-            return response()->json(['message' => 'Can only delete future weeks.'], 400);
 
-        }
         // Delete related week_menus entries
         WeekMenu::where('week_id', $week->id)->delete();
 
@@ -177,19 +181,5 @@ class WeeksController extends Controller
         return response()->json([
             'message' => 'Week and related menus deleted successfully.'
         ], 200);
-    }
-    public function nextWeek()
-    {
-        $nextWeekNumber = now()->weekOfYear + 1;
-            $week = Week::query()
-                ->where('week_number', $nextWeekNumber)
-                ->where('year', now()->year)
-                ->first();
-
-            $weekMenus = WeekMenu::where('week_id', $week->id)->get();
-            return response()->json([
-                'week' => $week,
-                'menus' => $weekMenus
-            ]);
     }
 }
