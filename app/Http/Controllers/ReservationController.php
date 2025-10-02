@@ -41,7 +41,7 @@ class ReservationController extends Controller
 
         return response()->json([
             'message' => 'Reservation created successfully',
-            'reservation' => $reservation
+            'reservation' => $reservation->only(['id', 'date', 'time', 'table_id'])
         ], 201);
     }
 

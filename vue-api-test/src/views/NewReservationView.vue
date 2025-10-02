@@ -21,6 +21,15 @@
             </select>
             <button type="submit">Foglalás</button>
         </form>
+        <!-- success modal -->
+        <div v-if="showSuccess" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
+            <div class="bg-white p-6 rounded shadow-lg w-96 text-center">
+                <h2 class="text-xl font-bold mb-2">Sikeres foglalás!</h2>
+                <p class="mb-2">Foglalás ID: <strong>{{ createdReservation?.id }}</strong></p>
+                <p class="mb-4">Küldünk egy megerősítő kódot az email címre.</p>
+                <button @click="() => {}" class="px-4 py-2 bg-blue-600 text-white rounded">Rendben</button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -29,6 +38,7 @@ import { useReservationStore } from '@/stores/reservations';
 import { useTableStore } from '@/stores/table';
 import { useAuthStore } from '@/stores/auth';
 import { onMounted, reactive, computed, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 const reservationStore = useReservationStore();
 const tableStore = useTableStore();
@@ -45,6 +55,10 @@ const newReservation = reactive({
     email: ''
 
 });
+
+const router = useRouter();
+const showSuccess = ref(false);
+const createdReservation = ref(null);
 
 // generate allowed times between min and max with a step (seconds)
 function buildTimes(min = '10:30', max = '21:00', stepSeconds = 5400) {
@@ -183,6 +197,12 @@ const createReservation = async () => {
         newReservation.table_id = '';
         newReservation.phone = '';
         newReservation.email = '';
+        createdReservation.value = result;
+        showSuccess.value = true;
+        // auto-redirect after short delay and pass reservation object via state
+        setTimeout(() => {
+            router.push({ name: 'confirm-reservation', query: { id: result.id }, state: { reservation: result } });
+        }, 1400);
     } else if (result && result.errors) {
         console.error('Reservation validation errors', result.errors);
     } else {
