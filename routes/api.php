@@ -37,8 +37,11 @@ Route::apiResource('menus', MenuController::class);
 Route::apiResource('reservations', ReservationController::class);
 Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm']);
 
+Route::get('/res-admin/unconfirmed-count', [ResAdminController::class, 'countUnconfirmed'])->middleware('auth:sanctum');
+Route::delete('/res-admin/delete-unconfirmed-reservations', [ResAdminController::class, 'deleteUnconfirmedReservations'])->middleware('auth:sanctum');
 Route::apiResource('res-admin', ResAdminController::class);
 Route::post('/res-admin/{reservation}/complete', [ResAdminController::class, 'complete']);
+
 
 Route::post('/orders/{order}/status', [OrderController::class, 'status'])->middleware('auth:sanctum');
 Route::apiResource('orders', OrderController::class);

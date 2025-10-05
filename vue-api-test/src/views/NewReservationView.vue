@@ -3,7 +3,7 @@
         <h1 v-if="allReservations.length">foglalások</h1>
         <form @submit.prevent="createReservation">
             <input type="text" v-model="newReservation.name" placeholder="Név">
-            <input type="date" v-model="newReservation.date">
+            <input type="date" v-model="newReservation.date" :min="currentDay">
                 <select v-model="newReservation.time" :disabled="!isTimeEnabled">
                     <option disabled value="">Válasszon időpontot</option>
                     <option v-for="t in allowedTimes" :key="t" :value="t">{{ t }}</option>
@@ -39,7 +39,7 @@ import { useTableStore } from '@/stores/table';
 import { useAuthStore } from '@/stores/auth';
 import { onMounted, reactive, computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-
+const currentDay = new Date().toISOString().split('T')[0];
 const reservationStore = useReservationStore();
 const tableStore = useTableStore();
 const authStore = useAuthStore();

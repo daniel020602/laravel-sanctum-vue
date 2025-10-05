@@ -82,4 +82,25 @@ class ResAdminController extends Controller
             'reservation' => $reservation // The reservation object before deletion
         ], 200);
     }
+    public function countUnconfirmed()
+    {
+        $currentDay = now()->toDateString();
+        $count = Reservation::where('is_confirmed', false)->whereDate('created_at', '<', $currentDay)->count();
+        return response()->json(['unconfirmed_count' => $count]);
+    }
+    public function deleteUnconfirmedReservations()
+    {
+        $currentDay = now()->toDateString();
+        $unconfirmedReservations = Reservation::where('is_confirmed', false)
+            ->whereDate('created_at', '<', $currentDay)
+            ->get();
+
+        foreach ($unconfirmedReservations as $reservation) {
+            $reservation->delete();
+        }
+
+        return response()->json([
+            'message' => 'Unconfirmed reservations deleted successfully'
+        ], 200);
+    }
 }

@@ -113,9 +113,6 @@ class ReservationController extends Controller
             ], 400);
         }
     }
-
-    /**
-     * Marks a reservation as complete and moves it to OldReservation.
-     */
+    
     
 }
