@@ -38,8 +38,15 @@ export const useResAdminStore = defineStore("resAdmin", {
             return data;
         },
         async fetchReservation(reservationId) {
-            const response = await fetch(`/api/res-admin/${encodeURIComponent(reservationId)}`);
-            const data = await response.json();
+            const response = await fetch(`/api/res-admin/${encodeURIComponent(reservationId)}`, {
+                headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('token') || '') },
+            });
+            // try to parse json if present
+            let data = {};
+            try { data = await response.json(); } catch (e) { data = {}; }
+            if (!response.ok) {
+                throw new Error(data.message || `Failed to fetch reservation: ${response.status}`);
+            }
             return data;
         },
         async deleteReservation(reservationId) {
@@ -47,10 +54,14 @@ export const useResAdminStore = defineStore("resAdmin", {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('token') || '') },
             });
-            const data = await response.json();
+            // DELETE may return 204 No Content -> avoid failing to parse
+            let data = {};
+            try { data = await response.json(); } catch (e) { data = {}; }
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to delete reservation');
+                throw new Error(data.message || `Failed to delete reservation: ${response.status}`);
             }
+            // Refresh list if present
+            try { await this.fetchReservations(); } catch (e) { /* ignore */ }
             return data;
         },
         async deleteUnconfirmedReservations() {

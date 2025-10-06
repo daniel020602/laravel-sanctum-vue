@@ -21,6 +21,7 @@ import MenuHandoutView from '@/views/admin/MenuHandoutView.vue'
 import TableAdminView from '@/views/admin/TableAdminView.vue'
 import NewReservationView from '@/views/NewReservationView.vue'
 import ConfirmReservationView from '@/views/ConfirmReservationView.vue'
+import ModifyReservationView from '@/views/admin/ModifyReservationView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -153,7 +154,13 @@ const router = createRouter({
       path: '/reservations/confirm',
       name: 'confirm-reservation',
       component: ConfirmReservationView,
-    }
+    },
+    {
+      path: '/reservations/modify/:id',
+      name: 'modify-reservation',
+      component: ModifyReservationView,
+      meta: { auth: true, requiresAdmin: true}
+    },
   ],
 })
 router.beforeEach(async (to, from) => 
