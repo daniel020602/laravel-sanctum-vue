@@ -23,12 +23,6 @@ class UpdateResRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => [
-                'sometimes',
-                'string',
-                'max:15',
-                Rule::unique('reservations', 'phone')->ignore($this->route('reservation') ?? $this->route('id')),
-            ],
             'date' => ['sometimes', 'date'],
             'time' => ['sometimes', 'date_format:H:i'],
             'table_id' => [
@@ -47,9 +41,6 @@ class UpdateResRequest extends FormRequest
                     }
                 },
             ],
-            'email' => ['sometimes', 'email'], // Assuming email is required for the reservation
-            'reservation_code' => ['required', 'string', 'max:10'], // Required reservation code
-            'name' => ['sometimes', 'string', 'max:255'], // Assuming name is required for the reservation
         ];
     }
 }

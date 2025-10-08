@@ -21,7 +21,7 @@
                                     <li v-for="res in reservationsByTable[table.id]" :key="res.id" class="py-1">
                                         <RouterLink :to="{ name: 'modify-reservation', params: { id: res.id } }" class="block">
                                             <span class="font-semibold">{{ res.name }}</span>
-                                                <span class="text-gray-500"> — {{ res.date }} {{ res.time }}</span>
+                                            <span class="text-gray-500"> — {{ res.date }} {{ res.time }}</span>
                                             <span v-if="res.is_confirmed" class="ml-2 text-green-600">(megerősítve)</span>
                                             <span v-else class="ml-2 text-red-600">(nem megerősítve)</span>
                                         </RouterLink>

@@ -50,7 +50,7 @@ class ReservationController extends Controller
      */
     public function show(string $id, Request $request)
     {
-        $reservation = Reservation::findOrFail($id);
+        $reservation = Reservation::with('table')->findOrFail($id);
         $code = $request->input('reservation_code');
         if (!$code || $reservation->reservation_code !== $code) {
             return response()->json(['message' => 'Invalid reservation code'], 400);

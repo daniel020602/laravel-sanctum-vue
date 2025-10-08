@@ -55,6 +55,65 @@ export const useReservationStore = defineStore("reservation", {
                 console.error('confirmReservation error', e);
                 throw e;
             }
+        },
+        async fetchReservationById(id, reservationCode = '') {
+            try {
+                // Backend expects reservation_code as input() (query or body) — include as query param for GET
+                const query = reservationCode ? `?reservation_code=${encodeURIComponent(reservationCode)}` : '';
+                const res = await fetch(`/api/reservations/${encodeURIComponent(id)}${query}`);
+                let data = {};
+                try { data = await res.json(); } catch (e) { data = {}; }
+                if (!res.ok) {
+                    throw new Error(data.message || `Failed to fetch reservation: ${res.status}`);
+                }
+                return data;
+            } catch (e) {
+                console.error('fetchReservationById error', e);
+                throw e;
+            }
+        },
+        async deleteReservation(id, reservationCode = '') {
+            try {
+                // delete with reservation_code as query param so controller's $request->input('reservation_code') finds it
+                const query = reservationCode ? `?reservation_code=${encodeURIComponent(reservationCode)}` : '';
+                const res = await fetch(`/api/reservations/${encodeURIComponent(id)}${query}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                if (!res.ok) {
+                    let data = {};
+                    try { data = await res.json(); } catch (_) { }
+                    throw new Error(data.message || 'Failed to delete reservation');
+                }
+                // Remove the deleted reservation from the local state
+                this.items = this.items.filter(i => i.id !== id);
+            } catch (e) {
+                console.error('deleteReservation error', e);
+                throw e;
+            }
+        },
+        async updateReservation(id, updateData, reservationCode = '') {
+            try {
+                // include reservation_code in the body so controller's $request->input('reservation_code') finds it
+                const body = { ...updateData, reservation_code: reservationCode || '' };
+                const res = await fetch(`/api/reservations/${encodeURIComponent(id)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    console.error('updateReservation failed', data);
+                    throw new Error(data.message || 'Failed to update reservation');
+                }
+                // Update the local item
+                const updated = data.reservation ?? data;
+                this.items = this.items.map(i => i.id === id ? updated : i);
+                return data;
+            } catch (e) {
+                console.error('updateReservation error', e);
+                throw e;
+            }
         }
     }
 });

@@ -28,7 +28,10 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium">Idő</label>
-                        <input type="time" v-model="form.time" class="w-full border rounded p-2" />
+                        <select v-model="form.time" :disabled="!isTimeEnabled" class="w-full border rounded p-2">
+                            <option disabled value="">Válasszon időpontot</option>
+                            <option v-for="t in allowedTimes" :key="t" :value="t">{{ t }}</option>
+                        </select>
                     </div>
                 </div>
 
@@ -43,6 +46,7 @@
                 <div class="flex items-center gap-3">
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded" :disabled="saving">Mentés</button>
                     <button type="button" class="bg-red-600 text-white px-4 py-2 rounded" @click="onDelete" :disabled="deleting">Törlés</button>
+                    <button type="button" class="bg-gray-600 text-white px-4 py-2 rounded" @click="completeReservation">Foglalás teljesítése</button>
                     <router-link class="ml-auto text-sm text-gray-600" :to="{ name: 'admin' }">Vissza</router-link>
                 </div>
             </form>
@@ -54,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted,computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useResAdminStore } from '@/stores/resAdmin';
 import { useTableStore } from '@/stores/table';
@@ -82,6 +86,34 @@ const form = reactive({
 
 const tables = ref([]);
 
+function buildTimes(min = '10:30', max = '21:00', stepSeconds = 5400) {
+    const toSec = s => {
+        const [h, m] = s.split(':').map(Number);
+        return h * 3600 + m * 60;
+    };
+    const toHHMM = sec => {
+        const hh = String(Math.floor(sec / 3600)).padStart(2,'0');
+        const mm = String(Math.floor((sec % 3600) / 60)).padStart(2,'0');
+        return `${hh}:${mm}`;
+    };
+    const start = toSec(min);
+    const end = toSec(max);
+    const arr = [];
+    for (let t = start; t <= end; t += stepSeconds) arr.push(toHHMM(t));
+    return arr;
+}
+
+const allowedTimes = buildTimes();
+const isTimeEnabled = computed(() => !!form.date);
+
+function normalizeTime(ts) {
+    if (!ts) return '';
+    const s = String(ts);
+    const parts = s.split(':');
+    if (parts.length >= 2) return parts[0].padStart(2,'0') + ':' + parts[1].padStart(2,'0');
+    return s;
+}
+
 async function load() {
     loading.value = true;
     error.value = '';
@@ -94,8 +126,8 @@ async function load() {
         form.name = r.name || '';
         form.email = r.email || '';
         form.phone = r.phone || '';
-        form.date = r.date || '';
-        form.time = r.time || '';
+    form.date = r.date || '';
+    form.time = normalizeTime(r.time || '');
         form.table_id = r.table_id ?? null;
     } catch (e) {
         console.error(e);
@@ -109,13 +141,13 @@ async function onSubmit() {
     saving.value = true;
     error.value = '';
     message.value = '';
-    try {
+        try {
         const payload = {
             name: form.name,
             email: form.email,
             phone: form.phone,
             date: form.date,
-            time: form.time,
+            time: normalizeTime(form.time),
             table_id: form.table_id,
         };
         const updated = await resAdmin.updateReservation(id, payload);
@@ -142,6 +174,19 @@ async function onDelete() {
         error.value = e.message || 'Hiba a törlés során';
     } finally {
         deleting.value = false;
+    }
+}
+async function completeReservation() {
+    if (!confirm('Biztosan teljesíted a foglalást? Ezzel a foglalás státusza "teljesített"-re változik.')) return;
+    error.value = '';
+    message.value = '';
+    try {
+        await resAdmin.completeReservation(id);
+        message.value = 'Foglalás teljesítve.';
+        router.push({ name: 'admin' });
+    } catch (e) {
+        console.error(e);
+        error.value = e.message || 'Hiba a foglalás teljesítése során';
     }
 }
 

@@ -11,6 +11,9 @@
             <RouterLink class="block text-blue-500 hover:underline" :to="{ name: 'new-reservation' }">asztalfoglalás</RouterLink>
             <br/>
             <RouterLink class="block text-blue-500 hover:underline" :to="{ name: 'confirm-reservation' }">foglalás megerősítése</RouterLink>
+            <br/>
+                <RouterLink class="block text-blue-500 hover:underline" :to="{ name: 'search-reservation' }">foglalás keresése</RouterLink>
+            <br/>
         </div>
     </main>
 </template>

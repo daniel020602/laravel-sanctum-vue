@@ -22,6 +22,8 @@ import TableAdminView from '@/views/admin/TableAdminView.vue'
 import NewReservationView from '@/views/NewReservationView.vue'
 import ConfirmReservationView from '@/views/ConfirmReservationView.vue'
 import ModifyReservationView from '@/views/admin/ModifyReservationView.vue'
+import SearchUserReservation from '@/views/SearchUserReservation.vue'
+import UserModifyReservation from '@/views/UserModifyReservation.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -161,6 +163,19 @@ const router = createRouter({
       component: ModifyReservationView,
       meta: { auth: true, requiresAdmin: true}
     },
+    {
+      path: '/reservations/search',
+      name: 'search-reservation',
+      component: SearchUserReservation,
+    },
+    {
+      path: '/reservations/modify-user/:id',
+      name: 'modify-user-reservation',
+      component: UserModifyReservation,
+      // pass reservationData from navigation state (history.state)
+      props: (route) => ({ reservationData: (route && route.state && route.state.reservation) ? route.state.reservation : null })
+    }
+
   ],
 })
 router.beforeEach(async (to, from) => 
