@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('menus', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['soup', 'main', 'dessert'])->default('main');
+            $table->enum('type', ['soup', 'main', 'dessert','garnish','drink'])->default('main');
             $table->decimal('price', 8, 2)->default(0); // Price of the menu item
             $table->timestamps();
         });

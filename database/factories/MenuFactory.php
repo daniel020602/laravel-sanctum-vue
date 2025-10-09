@@ -16,7 +16,7 @@ class MenuFactory extends Factory
     {
         return [
             'name' => $this->faker->word(),
-            'type' => $this->faker->randomElement(['soup', 'main', 'dessert']),
+            'type' => $this->faker->randomElement(['soup', 'main', 'dessert','garnish','drink']),
         ];
     }
 }
