@@ -2,198 +2,90 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import RegisterView from '../views/auth/Registerview.vue'
 import LoginView from '../views/auth/LoginView.vue'
-import { useAuthStore } from '../stores/auth.js'
-import CreateView from '../views/posts/CreateView.vue'
 import PostView from '../views/posts/PostView.vue'
-import UpdateView from '@/views/posts/UpdateView.vue'
-import UserDataView from '@/views/auth/UserDataView.vue'
 import Menu from '@/views/Menu.vue'
-import AdminMainView from '@/views/admin/AdminMainView.vue'
-import MenuAdminView from '@/views/admin/MenuAdminView.vue'
-import WeeksAdminView from '@/views/admin/WeeksAdminView.vue'
-import AddNewWeek from '@/views/admin/AddNewWeek.vue'
-import EditWeekView from '@/views/admin/EditWeekView.vue'
-import SubscriptionView from '@/views/Subscription.vue'
-import PayForSubscription from '@/views/PayForSubscription.vue'
-import EditSubscriptionsView from '@/views/EditSubscriptionsView.vue'
-import AdminUsersView from '@/views/admin/AdminUsersView.vue'
-import MenuHandoutView from '@/views/admin/MenuHandoutView.vue'
-import TableAdminView from '@/views/admin/TableAdminView.vue'
 import NewReservationView from '@/views/NewReservationView.vue'
 import ConfirmReservationView from '@/views/ConfirmReservationView.vue'
-import ModifyReservationView from '@/views/admin/ModifyReservationView.vue'
 import SearchUserReservation from '@/views/SearchUserReservation.vue'
 import UserModifyReservation from '@/views/UserModifyReservation.vue'
+import { useAuthStore } from '../stores/auth.js'
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
+// routes split into files for clarity
+import { authRoutes } from './indexAuth'
+import { adminRoutes } from './indexAdmin'
 
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: RegisterView,
-      meta:{guest:true}
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView,
-      meta:{guest:true}
-    },
-    {
-      path: '/create',
-      name: 'create',
-      component: CreateView,
-      meta:{auth:true}
-    },
-    {
+const publicRoutes = [
+  {
+    path: '/',
+    name: 'home',
+    component: HomeView,
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView,
+    meta: { guest: true }
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+    meta: { guest: true }
+  },
+  {
     path: '/posts/:id',
     name: 'post',
     component: PostView,
-    },
-    {
-      path: '/posts/update/:id/',
-      name: 'update',
-      component: UpdateView,
-      meta:{auth:true}
-    },
-    {
-      path: '/userdata',
-      name: 'userdata',
-      component: UserDataView,
-      meta:{auth:true}
-    },
-    {
-      path: '/userdata/:id',
-      name: 'userdata-admin',
-      component: UserDataView,
-      meta:{auth:true}
-    },
-    {
-      path: '/menu',
-      name: 'menu',
-      component: Menu
-    },
-    {
-      path: '/admin',
-      name: 'admin',
-      component: AdminMainView,
-      meta: { requiresAdmin: true, auth: true }
-    },
-    {
-      path: '/admin/menu',
-      name: 'admin-menu',
-      component: MenuAdminView,
-      meta: { requiresAdmin: true, auth: true }
-    },
-    {
-      path: '/admin/weeks',
-      name: 'admin-weeks',
-      component: WeeksAdminView,
-      meta: { requiresAdmin: true, auth: true }
-    },
-    {
-      path: '/admin/weeks/create',
-      name: 'admin-weeks-create',
-      component: AddNewWeek,
-      meta: { requiresAdmin: true, auth: true }
-    },
-    {
-      path: '/admin/weeks/edit/:id',
-      name: 'admin-weeks-edit',
-      component: EditWeekView,
-      meta: { requiresAdmin: true, auth: true }
-    },
-    {
-      path: '/admin/users',
-      name: 'admin-users',
-      component: AdminUsersView,
-      meta: { requiresAdmin: true, auth: true }
-    },
-    {
-      path: '/subscription',
-      name: 'subscription',
-      component: SubscriptionView,
-      meta: { auth: true }
-    },
-    {
-      path: '/pay-for-subscription/:id',
-      name: 'pay-for-subscription',
-      component: PayForSubscription,
-      meta: { auth: true }
-    },
-    {
-      path: '/subscription-edit/:id',
-      name: 'subscription-edit',
-      component: EditSubscriptionsView,
-      meta: { auth: true }
-    },
-    {
-      path: '/admin/menu-handout',
-      name: 'admin-menu-handout',
-      component: MenuHandoutView,
-      meta: { requiresAdmin: true, auth: true }
-    },
-    {
-      path: '/admin/tables',
-      name: 'admin-tables',
-      component: TableAdminView,
-      meta: { requiresAdmin: true, auth: true }
-    },
-    {
-      path: '/reservations/new',
-      name: 'new-reservation',
-      component: NewReservationView,
-    }
-    ,
-    {
-      path: '/reservations/confirm',
-      name: 'confirm-reservation',
-      component: ConfirmReservationView,
-    },
-    {
-      path: '/reservations/modify/:id',
-      name: 'modify-reservation',
-      component: ModifyReservationView,
-      meta: { auth: true, requiresAdmin: true}
-    },
-    {
-      path: '/reservations/search',
-      name: 'search-reservation',
-      component: SearchUserReservation,
-    },
-    {
-      path: '/reservations/modify-user/:id',
-      name: 'modify-user-reservation',
-      component: UserModifyReservation,
-      // pass reservationData from navigation state (history.state)
-      props: (route) => ({ reservationData: (route && route.state && route.state.reservation) ? route.state.reservation : null })
-    }
+  },
+  {
+    path: '/menu',
+    name: 'menu',
+    component: Menu
+  },
+  {
+    path: '/reservations/new',
+    name: 'new-reservation',
+    component: NewReservationView,
+  },
+  {
+    path: '/reservations/confirm',
+    name: 'confirm-reservation',
+    component: ConfirmReservationView,
+  },
+  {
+    path: '/reservations/search',
+    name: 'search-reservation',
+    component: SearchUserReservation,
+  },
+  {
+    path: '/reservations/modify-user/:id',
+    name: 'modify-user-reservation',
+    component: UserModifyReservation,
+    // pass reservationData from navigation state (history.state)
+    props: (route) => ({ reservationData: (route && route.state && route.state.reservation) ? route.state.reservation : null })
+  }
+]
 
-  ],
+const routes = [...publicRoutes, ...authRoutes, ...adminRoutes]
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes
 })
-router.beforeEach(async (to, from) => 
-{
+
+router.beforeEach(async (to, from) => {
   const authStore = useAuthStore()
   await authStore.getUser()
-  if(authStore.user && to.meta.guest)
-  {
-    return {name:'home'}
+  if (authStore.user && to.meta.guest) {
+    return { name: 'home' }
   }
-  if(!authStore.user && to.meta.auth)
-  {
-    return {name:'login'}
+  if (!authStore.user && to.meta.auth) {
+    return { name: 'login' }
   }
   if (to.meta.requiresAdmin && (!authStore.user || !authStore.user.is_admin)) {
-    return { name: 'home' } // or { path: '/' }
+    return { name: 'home' }
   }
-
-
 })
+
 export default router
+

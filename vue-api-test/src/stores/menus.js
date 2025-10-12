@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import { useAuthStore } from "./auth";
 
 export const useMenuStore = defineStore("menu", {
   state: () => ({
