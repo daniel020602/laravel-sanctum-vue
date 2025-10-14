@@ -12,7 +12,7 @@ class ReservationCodeTest extends TestCase
 {
     public function test_envelope_contains_correct_from_and_subject()
     {
-        $mail = new ReservationCode('ABC123');
+        $mail = new ReservationCode('ABC123', 1);
         $envelope = $mail->envelope();
         $this->assertInstanceOf(Envelope::class, $envelope);
         $this->assertEquals('Reservation Code', $envelope->subject);
@@ -23,7 +23,7 @@ class ReservationCodeTest extends TestCase
     public function test_content_contains_correct_view_and_data()
     {
         $code = 'XYZ789';
-        $mail = new ReservationCode($code);
+        $mail = new ReservationCode($code, 2);
         $content = $mail->content();
         $this->assertInstanceOf(Content::class, $content);
         $this->assertEquals('mail', $content->view);
@@ -33,7 +33,7 @@ class ReservationCodeTest extends TestCase
 
     public function test_attachments_is_empty()
     {
-        $mail = new ReservationCode('SAMPLE');
+        $mail = new ReservationCode('SAMPLE', 3);
         $this->assertEquals([], $mail->attachments());
     }
 }
