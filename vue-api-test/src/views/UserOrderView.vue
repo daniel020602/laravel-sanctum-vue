@@ -52,28 +52,55 @@
       <ul class="grid grid-cols-1 justify-items-center">
         <li class="w-160 bg-yellow-200 m-1 text-center rounded" v-for="(item, index) in order" :key="index">
           {{ item.name }} - {{ item.price }} Ft
+          <button class="bg-red-500 text-white rounded px-2 py-1 mt-1" @click="removeFromOrder(index)">Remove</button>
         </li>
       </ul>
     </div>
       <div class="text-center mt-4">
-        <button class="bg-green-600 text-white rounded px-4 py-2" @click="createOrder" :disabled="order.length === 0">Create Order</button>
+        <button v-if="!id" class="bg-green-600 text-white rounded px-4 py-2" @click="createOrder" :disabled="order.length === 0">Create Order</button>
+        <button v-else class="bg-blue-600 text-white rounded px-4 py-2" @click="updateOrder" :disabled="order.length === 0">Update Order</button>
+        <button  class="bg-red-600 text-white rounded px-4 py-2" @click="clearOrder" :disabled="order.length === 0">Clear Order</button>
+        
     </div>
   </div>
 </template>
 
 <script setup>
+import router from '@/router';
 import { useMenuStore } from '@/stores/menus';
-import { computed, ref } from 'vue';
+import { useOrdersStore } from '@/stores/orders';
+import { computed, ref, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 const menusStore = useMenuStore();
+const ordersStore = useOrdersStore();
 const showGarnish = ref(null);
 const order = ref([]);
-
+const route = useRoute();
+const id = route.params.id || null;
 if (typeof menusStore.fetchMenuItems === 'function') {
   menusStore.fetchMenuItems().catch(err => {
     console.error('Failed to fetch menu items', err);
   });
 }
+
+// Prefill order when route contains an order id (run immediately like `created` and on param changes)
+onMounted(() => {
+  
+  if (!id) return;
+
+  useOrdersStore().fetchOrder(id).then(async (data) => {
+    for (const it of data.orderproducts) {
+      order.value.push({
+        ...menusStore.items.find(m => m.id === it.menu_id),
+        quantity: it.quantity || 1
+      });
+    }
+    
+  }).catch(err => {
+    console.error('Failed to fetch order by id', err);
+  });
+});
 
 const mains = computed(() => {
   const list = Array.isArray(menusStore.items) ? menusStore.items : [];
@@ -105,7 +132,13 @@ function addToOrder(item) {
   }
   console.log('Order:', order.value);
 }
-
+function removeFromOrder(index) {
+  order.value.splice(index, 1);
+}
+function clearOrder() { 
+  order.value = [];
+  showGarnish.value = null;
+}
 // normalize order into { items: [{ id, quantity }, ...] }
 function normalizeOrder(orderArray) {
   const counts = new Map();
@@ -120,13 +153,21 @@ function normalizeOrder(orderArray) {
   return { items };
 }
 
-function createOrder() {
+async function createOrder() {
   const payload = normalizeOrder(order.value);
-  menusStore.createOrder(payload).then(() => {
+  try {
+    const newOrder = await ordersStore.createOrder(payload);
     order.value = [];
     showGarnish.value = null;
-  }).catch(err => {
+    const id = newOrder?.id || (localStorage.getItem('lastOrder') ? JSON.parse(localStorage.getItem('lastOrder')).id : null);
+    if (id) {
+      router.push({ name: 'user-order-status', params: { id } });
+    } else {
+      console.error('Create order succeeded but no id returned', newOrder);
+    }
+  } catch (err) {
     console.error('Failed to create order', err);
-  });
+  }
 }
+
 </script>

@@ -6,6 +6,7 @@ import SubscriptionView from '@/views/Subscription.vue'
 import PayForSubscription from '@/views/PayForSubscription.vue'
 import EditSubscriptionsView from '@/views/EditSubscriptionsView.vue'
 import UserOrderView from '@/views/UserOrderView.vue'
+import UserOrderStatus from '@/views/UserOrderStatus.vue'
 
 export const authRoutes = [
   {
@@ -53,6 +54,18 @@ export const authRoutes = [
   {
     path: '/user/orders',
     name: 'user-orders',
+    component: UserOrderView,
+    meta: { auth: true }
+  },
+  {
+    path: '/user/orders/:id',
+    name: 'user-order-status',
+    component: UserOrderStatus,
+    meta: { auth: true }
+  },
+  {
+    path: '/user/change-order/:id',
+    name: 'user-change-order',
     component: UserOrderView,
     meta: { auth: true }
   }
