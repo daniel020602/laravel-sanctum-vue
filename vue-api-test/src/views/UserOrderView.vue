@@ -51,7 +51,7 @@
       <h2 class="text-center">Your Order</h2>
       <ul class="grid grid-cols-1 justify-items-center">
         <li class="w-160 bg-yellow-200 m-1 text-center rounded" v-for="(item, index) in order" :key="index">
-          {{ item.name }} - {{ item.price }} Ft
+          {{ item.name }} - {{ item.price }} Ft <span v-if="item.quantity">x {{ item.quantity }}</span>
           <button class="bg-red-500 text-white rounded px-2 py-1 mt-1" @click="removeFromOrder(index)">Remove</button>
         </li>
       </ul>
@@ -90,13 +90,26 @@ onMounted(() => {
   if (!id) return;
 
   useOrdersStore().fetchOrder(id).then(async (data) => {
-    for (const it of data.orderproducts) {
-      order.value.push({
-        ...menusStore.items.find(m => m.id === it.menu_id),
-        quantity: it.quantity || 1
-      });
+    try {
+      if (data && Array.isArray(data.items)) {
+        // New normalized shape: { items: [{ id, quantity }] }
+        order.value = denormalizeOrder(data);
+      } else if (data && Array.isArray(data.orderproducts)) {
+        // Legacy shape: orderproducts array -> convert to quantity-based entries
+        const reconstructed = [];
+        for (const it of data.orderproducts) {
+          const menu = menusStore.items.find(m => Number(m.id) === Number(it.menu_id));
+          if (menu) {
+            reconstructed.push({ ...menu, quantity: it.quantity || 1 });
+          }
+        }
+        order.value = reconstructed;
+      } else {
+        console.warn('Unknown order shape returned from API', data);
+      }
+    } catch (e) {
+      console.error('Failed to process fetched order', e);
     }
-    
   }).catch(err => {
     console.error('Failed to fetch order by id', err);
   });
@@ -124,7 +137,14 @@ const drinks = computed(() => {
 });
 
 function addToOrder(item) {
-  order.value.push(item);
+  // find existing entry by id
+  const id = Number(item.id ?? item.menu_id);
+  const existing = order.value.find(o => Number(o.id) === id);
+  if (existing) {
+    existing.quantity = (Number(existing.quantity) || 1) + 1;
+  } else {
+    order.value.push({ ...item, quantity: 1 });
+  }
   if (item.type === 'main') {
     showGarnish.value = item.id;
   } else if (item.type === 'garnish') {
@@ -133,7 +153,13 @@ function addToOrder(item) {
   console.log('Order:', order.value);
 }
 function removeFromOrder(index) {
-  order.value.splice(index, 1);
+  const item = order.value[index];
+  if (!item) return;
+  if ((Number(item.quantity) || 0) > 1) {
+    item.quantity = Number(item.quantity) - 1;
+  } else {
+    order.value.splice(index, 1);
+  }
 }
 function clearOrder() { 
   order.value = [];
@@ -153,6 +179,23 @@ function normalizeOrder(orderArray) {
   return { items };
 }
 
+// Reverse of normalizeOrder: take { items: [{id, quantity}] } and return an array
+// of menu item objects (from menusStore.items) augmented with quantity so the UI
+// can display them. Missing menu ids are ignored.
+function denormalizeOrder(normalized) {
+  const items = Array.isArray(normalized?.items) ? normalized.items : [];
+  const result = [];
+  for (const it of items) {
+    const id = Number(it.id);
+    const quantity = Number(it.quantity) || 1;
+    if (!id) continue;
+    const menuItem = menusStore.items.find(m => Number(m.id) === id);
+    if (!menuItem) continue;
+    result.push({ ...menuItem, quantity });
+  }
+  return result;
+}
+
 async function createOrder() {
   const payload = normalizeOrder(order.value);
   try {
@@ -170,4 +213,16 @@ async function createOrder() {
   }
 }
 
+async function updateOrder()
+{
+  const payload = normalizeOrder(order.value);
+  try {
+    await ordersStore.updateOrder(id, payload);
+    order.value = [];
+    showGarnish.value = null;
+    router.push({ name: 'user-order-status', params: { id } });
+  } catch (err) {
+    console.error('Failed to update order', err);
+  }
+}
 </script>

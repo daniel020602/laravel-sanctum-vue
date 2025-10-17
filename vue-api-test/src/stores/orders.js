@@ -62,6 +62,34 @@ export const useOrdersStore = defineStore("orders", {
                     this.current = order;
                     console.log("Fetched order:", order);
                     return order;
+                },
+        async updateOrder(id, formData) {
+            const res = await fetch(`/api/orders/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": localStorage.getItem("token") ? "Bearer " + localStorage.getItem("token") : "",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const payload = await res.json().catch(() => null);
+
+            if (!res.ok) {
+                return { errors: payload?.errors || payload?.message || 'Failed to update order' };
+            }
+
+            const updatedOrder = payload && payload.data ? payload.data : payload;
+
+            if (updatedOrder) {
+                const index = this.orders.findIndex(order => order.id === id);
+                if (index !== -1) {
+                    this.orders.splice(index, 1, updatedOrder);
                 }
+                this.current = updatedOrder;
+            }
+
+            return updatedOrder;
+        }
     }
 });
