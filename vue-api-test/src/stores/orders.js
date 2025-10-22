@@ -90,6 +90,35 @@ export const useOrdersStore = defineStore("orders", {
             }
 
             return updatedOrder;
-        }
+        },
+        async deleteOrder(id) {
+            const res = await fetch(`/api/orders/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": localStorage.getItem("token") ? "Bearer " + localStorage.getItem("token") : "",
+                }
+            });
+
+            if (!res.ok) {
+                const payload = await res.json().catch(() => null);
+                return { message: payload?.message || 'Failed to delete order' };
+            }
+
+            this.orders = this.orders.filter(order => order.id !== id);
+            if (this.current && this.current.id === id) {
+                this.current = null;
+            }
+
+            return { message: 'Order deleted successfully' };
+        },
+        async fetchCurrentUserOrders() {
+            const response = await fetch("/api/orders/current-order", {
+                headers: {
+                    "Authorization": localStorage.getItem("token") ? "Bearer " + localStorage.getItem("token") : "",
+                }
+            });
+            const data = await response.json();
+            return data;
+        }   
     }
 });

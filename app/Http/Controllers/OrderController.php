@@ -182,4 +182,14 @@ class OrderController extends Controller
             return response()->json(['message' => 'Payment failed: ' . $e->getMessage()], 500);
         }
     }
+    public function userOrders()
+    {
+        $user = Auth::user();
+        $orders = Order::where('user_id', $user->id)
+                       ->whereIn('status', ['pending', 'prepared', 'delivery'])
+                       ->with('orderproducts')
+                       ->get();
+
+        return response()->json($orders);
+    }
 }

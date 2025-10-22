@@ -10,19 +10,32 @@
           <p>Állapot: <strong>{{ order?.status }}</strong></p>
         </div>
         <RouterLink :to="{ name: 'user-change-order', params: { id: order?.id } }" class="text-blue-500 hover:underline">Vissza az ételrendelésekhez</RouterLink>
+        <button @click="deleteOrder" class="text-red-500 hover:underline">Rendelés törlése</button>
     </div>
 </template>
 
 <script setup>
 import { useOrdersStore } from '@/stores/orders';
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const orderStore = useOrdersStore();
 const route = useRoute();
+const router = useRouter();
 const order = ref(null);
 const loading = ref(true);
 const notFound = ref(false);
+
+async function deleteOrder() {
+    if (!order.value || !order.value.id) return;
+    try {
+    await orderStore.deleteOrder(order.value.id);
+    order.value = null;
+    router.push({ name: 'home' });
+    } catch (err) {
+        console.error('Failed to delete order', err);
+    }
+}
 
 async function load() {
     const id = route.params.id;
@@ -41,6 +54,5 @@ async function load() {
         loading.value = false;
     }
 }
-
 onMounted(load);
 </script>

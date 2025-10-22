@@ -42,7 +42,7 @@ Route::delete('/res-admin/delete-unconfirmed-reservations', [ResAdminController:
 Route::apiResource('res-admin', ResAdminController::class);
 Route::post('/res-admin/{reservation}/complete', [ResAdminController::class, 'complete']);
 
-
+Route::get('/orders/current-order', [OrderController::class, 'userOrders'])->middleware('auth:sanctum');
 Route::post('/orders/{order}/status', [OrderController::class, 'status'])->middleware('auth:sanctum');
 Route::apiResource('orders', OrderController::class);
 Route::post('/orders/{order}/pay', [OrderController::class, 'pay']);
