@@ -8,6 +8,9 @@ import AdminUsersView from '@/views/admin/AdminUsersView.vue'
 import MenuHandoutView from '@/views/admin/MenuHandoutView.vue'
 import TableAdminView from '@/views/admin/TableAdminView.vue'
 import ModifyReservationView from '@/views/admin/ModifyReservationView.vue'
+import AdminOrdersView from '@/views/admin/AdminOrdersView.vue'
+import AdminOrdersStatus from '@/views/admin/AdminOrdersStatus.vue'
+import OrderStatisticsView from '@/views/admin/OrderStatisticsView.vue'
 
 export const adminRoutes = [
   {
@@ -63,5 +66,23 @@ export const adminRoutes = [
     name: 'modify-reservation',
     component: ModifyReservationView,
     meta: { auth: true, requiresAdmin: true }
-  }
+  },
+  {
+    path: '/admin/orders',
+    name: 'admin-orders',
+    component: AdminOrdersView,
+    meta: { requiresAdmin: true, auth: true }
+  },
+  {
+    path: '/admin/orders/:id',
+    name: 'admin-orders-status',
+    component: AdminOrdersStatus,
+    meta: { requiresAdmin: true, auth: true }
+  },
+  {
+    path: '/admin/orders/statistics',
+    name: 'admin-order-statistics',
+    component: OrderStatisticsView,
+    meta: { requiresAdmin: true, auth: true }
+  } 
 ]

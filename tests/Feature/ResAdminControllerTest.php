@@ -107,4 +107,112 @@ class ResAdminControllerTest extends TestCase
             'table_id' => $this->reservation->table_id,
         ]);
     }
+
+    /** @test */
+    public function count_unconfirmed_returns_only_old_unconfirmed_reservations()
+    {
+        // create tables used by the test so foreign keys are valid
+        $t1 = Table::factory()->create();
+        $t2 = Table::factory()->create();
+        $t3 = Table::factory()->create();
+
+        // old unconfirmed (should be counted)
+        $r1 = Reservation::create([
+            'reservation_code' => 'ABC1',
+            'name' => 'Old Unconfirmed',
+            'email' => 'old@example.com',
+            'phone' => '123',
+            'date' => now()->toDateString(),
+            'time' => now()->toTimeString(),
+            'table_id' => $t1->id,
+            'is_confirmed' => false,
+        ]);
+        $r1->created_at = now()->subDays(2);
+        $r1->save();
+
+        // today unconfirmed (should NOT be counted)
+        $r2 = Reservation::create([
+            'reservation_code' => 'ABC2',
+            'name' => 'Today Unconfirmed',
+            'email' => 'today@example.com',
+            'phone' => '456',
+            'date' => now()->toDateString(),
+            'time' => now()->toTimeString(),
+            'table_id' => $t2->id,
+            'is_confirmed' => false,
+        ]);
+
+        // old but confirmed (should NOT be counted)
+        $r3 = Reservation::create([
+            'reservation_code' => 'ABC3',
+            'name' => 'Old Confirmed',
+            'email' => 'oldconf@example.com',
+            'phone' => '789',
+            'date' => now()->toDateString(),
+            'time' => now()->toTimeString(),
+            'table_id' => $t3->id,
+            'is_confirmed' => true,
+        ]);
+        $r3->created_at = now()->subDays(3);
+        $r3->save();
+
+        $res = $this->actingAs($this->admin, 'sanctum')->getJson('/api/res-admin/unconfirmed-count');
+        $res->assertStatus(200)->assertJson(['unconfirmed_count' => 1]);
+    }
+
+    /** @test */
+    public function delete_unconfirmed_reservations_removes_only_old_unconfirmed()
+    {
+        // create tables used by the test so foreign keys are valid
+        $t1 = Table::factory()->create();
+        $t2 = Table::factory()->create();
+        $t3 = Table::factory()->create();
+
+        // old unconfirmed (should be deleted)
+        $r1 = Reservation::create([
+            'reservation_code' => 'DEL1',
+            'name' => 'To Delete',
+            'email' => 'del@example.com',
+            'phone' => '111',
+            'date' => now()->toDateString(),
+            'time' => now()->toTimeString(),
+            'table_id' => $t1->id,
+            'is_confirmed' => false,
+        ]);
+        $r1->created_at = now()->subDays(2);
+        $r1->save();
+
+        // recent unconfirmed (should remain)
+        $r2 = Reservation::create([
+            'reservation_code' => 'DEL2',
+            'name' => 'Keep',
+            'email' => 'keep@example.com',
+            'phone' => '222',
+            'date' => now()->toDateString(),
+            'time' => now()->toTimeString(),
+            'table_id' => $t2->id,
+            'is_confirmed' => false,
+        ]);
+
+        // old confirmed (should remain)
+        $r3 = Reservation::create([
+            'reservation_code' => 'DEL3',
+            'name' => 'Also Keep',
+            'email' => 'also@example.com',
+            'phone' => '333',
+            'date' => now()->toDateString(),
+            'time' => now()->toTimeString(),
+            'table_id' => $t3->id,
+            'is_confirmed' => true,
+        ]);
+        $r3->created_at = now()->subDays(3);
+        $r3->save();
+
+        $res = $this->actingAs($this->admin, 'sanctum')->deleteJson('/api/res-admin/delete-unconfirmed-reservations');
+        $res->assertStatus(200)->assertJson(['message' => 'Unconfirmed reservations deleted successfully']);
+
+        $this->assertDatabaseMissing('reservations', ['id' => $r1->id]);
+        $this->assertDatabaseHas('reservations', ['id' => $r2->id]);
+        $this->assertDatabaseHas('reservations', ['id' => $r3->id]);
+    }
 }

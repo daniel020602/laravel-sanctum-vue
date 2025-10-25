@@ -4,6 +4,7 @@ import UpdateView from '@/views/posts/UpdateView.vue'
 import UserDataView from '@/views/auth/UserDataView.vue'
 import SubscriptionView from '@/views/Subscription.vue'
 import PayForSubscription from '@/views/PayForSubscription.vue'
+import PayForOrder from '@/views/PayForOrder.vue'
 import EditSubscriptionsView from '@/views/EditSubscriptionsView.vue'
 import UserOrderView from '@/views/UserOrderView.vue'
 import UserOrderStatus from '@/views/UserOrderStatus.vue'
@@ -43,6 +44,12 @@ export const authRoutes = [
     path: '/pay-for-subscription/:id',
     name: 'pay-for-subscription',
     component: PayForSubscription,
+    meta: { auth: true }
+  },
+  {
+    path: '/pay-for-order/:id',
+    name: 'pay-for-order',
+    component: PayForOrder,
     meta: { auth: true }
   },
   {

@@ -46,12 +46,18 @@ const selected = reactive({});
 const dayLabels = { 1: 'Hétfő', 2: 'Kedd', 3: 'Szerda', 4: 'Csütörtök', 5: 'Péntek' };
 
 function getDateOfISOWeek(weekNum, year, dayNumber = 1) {
-  const simple = new Date(year, 0, 1 + (weekNum - 1) * 7);
-  const dow = simple.getDay();
-  const diff = (dow <= 4) ? (1 - dow) : (8 - dow);
-  const ISOweekStart = new Date(simple);
-  ISOweekStart.setDate(simple.getDate() + diff + (dayNumber - 1));
-  return ISOweekStart.toISOString().slice(0,10);
+  // Use Jan 4th to find the Monday of ISO week 1, then add (weekNum-1)*7 and day offset
+  const w = Number(weekNum);
+  const y = Number(year);
+  if (!Number.isFinite(w) || !Number.isFinite(y) || w < 1 || w > 53) return '';
+  const jan4 = new Date(y, 0, 4);
+  let jan4Dow = jan4.getDay();
+  if (jan4Dow === 0) jan4Dow = 7;
+  const week1Monday = new Date(jan4);
+  week1Monday.setDate(jan4.getDate() - (jan4Dow - 1));
+  const target = new Date(week1Monday);
+  target.setDate(week1Monday.getDate() + (w - 1) * 7 + (dayNumber - 1));
+  return target.toISOString().slice(0,10);
 }
 
 onMounted(async () => {

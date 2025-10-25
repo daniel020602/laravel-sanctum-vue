@@ -1,5 +1,5 @@
 <template>
-    <div v-if="week" class="container mx-auto p-4 self-center bg-amber-50 rounded-lg mt-4">
+    <div v-if="week && week.id" class="container mx-auto p-4 self-center bg-amber-50 rounded-lg mt-4">
         <h1 class="text-2xl font-bold text-center p-4 m-4 items-center">Előfizetés heti menüre</h1>
         <h1  class="text-l font-semibold text-center p-2 m-2">{{ week.week_number }}. hét menü</h1>
         <RouterLink :to="{ name: 'pay-for-subscription', params: { id: week.id } }" class="primary-btn text-l m-auto mb-4">Előfizetés erre a hétre</RouterLink>
@@ -59,8 +59,8 @@ onMounted(async () => {
 
     week.value = weeksStore.week;
 
-    if (!week.value) {
-        console.warn('No next week available');
+    if (!week.value || !week.value.id) {
+        console.warn('No next week available or week id missing');
         return;
     }
 

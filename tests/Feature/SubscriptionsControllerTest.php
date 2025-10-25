@@ -325,4 +325,114 @@ class SubscriptionsControllerTest extends TestCase
 
         $this->deleteJson('/api/subscriptions/' . $sub->id)->assertStatus(403);
     }
+
+    public function test_userWeek_returns_404_when_next_week_missing()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+
+        // Ensure there is no week for next week
+        // (no creation)
+        $res = $this->getJson('/api/subscriptions/user-week');
+        $res->assertStatus(404)->assertJson(['message' => 'Week not found']);
+    }
+
+    public function test_userWeek_returns_404_when_no_subscription()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+
+        $next = now()->addWeek();
+        $week = Week::factory()->create([
+            'start_date' => $next->toDateString(),
+            'week_number' => (int) $next->weekOfYear,
+            'year' => (int) $next->year,
+        ]);
+
+        $res = $this->getJson('/api/subscriptions/user-week');
+        $res->assertStatus(404)->assertJson(['message' => 'Subscription not found']);
+    }
+
+    public function test_userWeek_returns_subscription_and_choices()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+
+        $next = now()->addWeek();
+        $week = Week::factory()->create([
+            'start_date' => $next->toDateString(),
+            'week_number' => (int) $next->weekOfYear,
+            'year' => (int) $next->year,
+        ]);
+
+        $sub = Subscription::factory()->create(['user_id' => $user->id, 'week_id' => $week->id]);
+
+        // create two week menus for this week and attach choices
+        $wm1 = WeekMenu::factory()->create(['week_id' => $week->id, 'day_of_week' => 1, 'option' => 'a']);
+        $wm2 = WeekMenu::factory()->create(['week_id' => $week->id, 'day_of_week' => 2, 'option' => 'b']);
+
+        SubscriptionChoice::factory()->create(['subscription_id' => $sub->id, 'week_menu_id' => $wm1->id, 'day' => 1]);
+        SubscriptionChoice::factory()->create(['subscription_id' => $sub->id, 'week_menu_id' => $wm2->id, 'day' => 2]);
+
+        $res = $this->getJson('/api/subscriptions/user-week');
+        $res->assertStatus(200)
+            ->assertJsonStructure(['subscription', 'choices']);
+        $this->assertCount(2, $res->json('choices'));
+    }
+
+    public function test_weeklySummary_forbidden_for_non_admin()
+    {
+        $user = User::factory()->create(['is_admin' => false]);
+        $this->actingAs($user, 'sanctum');
+
+        $week = Week::factory()->create();
+        $res = $this->getJson('/api/subscriptions/weekly-summary/' . $week->id);
+        $res->assertStatus(403)->assertJson(['message' => 'Access denied']);
+    }
+
+    public function test_weeklySummary_returns_404_when_week_missing()
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $this->actingAs($admin, 'sanctum');
+
+        $res = $this->getJson('/api/subscriptions/weekly-summary/999999');
+        $res->assertStatus(404)->assertJson(['message' => 'Week not found']);
+    }
+
+    public function test_weeklySummary_returns_normalized_summary()
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $this->actingAs($admin, 'sanctum');
+
+        $week = Week::factory()->create();
+
+        // create week menus and subscription choices so counts are known
+        $wmA = WeekMenu::factory()->create(['week_id' => $week->id, 'day_of_week' => 1, 'option' => 'a']);
+        $wmB = WeekMenu::factory()->create(['week_id' => $week->id, 'day_of_week' => 1, 'option' => 'b']);
+        $wmSoup = WeekMenu::factory()->create(['week_id' => $week->id, 'day_of_week' => 2, 'option' => 'soup']);
+
+    // create subscriptions and choices referencing those week menus
+    $s1 = Subscription::factory()->create(['week_id' => $week->id]);
+    $s2 = Subscription::factory()->create(['week_id' => $week->id]);
+    $s3 = Subscription::factory()->create(['week_id' => $week->id]);
+
+    // counts: wmA -> 2 (s1,s2), wmB -> 1 (s1), wmSoup -> 3 (s1,s2,s3)
+    SubscriptionChoice::factory()->create(['subscription_id' => $s1->id, 'week_menu_id' => $wmA->id, 'day' => 1]);
+    SubscriptionChoice::factory()->create(['subscription_id' => $s2->id, 'week_menu_id' => $wmA->id, 'day' => 1]);
+    SubscriptionChoice::factory()->create(['subscription_id' => $s1->id, 'week_menu_id' => $wmB->id, 'day' => 1]);
+
+    SubscriptionChoice::factory()->create(['subscription_id' => $s1->id, 'week_menu_id' => $wmSoup->id, 'day' => 2]);
+    SubscriptionChoice::factory()->create(['subscription_id' => $s2->id, 'week_menu_id' => $wmSoup->id, 'day' => 2]);
+    SubscriptionChoice::factory()->create(['subscription_id' => $s3->id, 'week_menu_id' => $wmSoup->id, 'day' => 2]);
+
+        $res = $this->getJson('/api/subscriptions/weekly-summary/' . $week->id);
+        $res->assertStatus(200)->assertJsonStructure(['week_id', 'week_number', 'year', 'summary']);
+
+        $summary = $res->json('summary');
+        // day 1: a => 2, b =>1
+        $this->assertEquals(2, $summary[1]['a']);
+        $this->assertEquals(1, $summary[1]['b']);
+        // day 2: soup => 3
+        $this->assertEquals(3, $summary[2]['soup']);
+    }
 }

@@ -39,9 +39,10 @@ class ReservationController extends Controller
         Mail::to($data['email'])->send(new ReservationCode($ResCode, $reservation->id)); // Send the reservation code via email
 
 
+        // include the generated reservation_code in the response so clients/tests can access it
         return response()->json([
             'message' => 'Reservation created successfully',
-            'reservation' => $reservation->only(['id', 'date', 'time', 'table_id'])
+            'reservation' => $reservation->only(['id', 'date', 'time', 'table_id', 'reservation_code'])
         ], 201);
     }
 

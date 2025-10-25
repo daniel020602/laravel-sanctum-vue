@@ -115,7 +115,7 @@ class AuthController extends Controller
             'user' => $user
         ], 200);
     }
-    public function changeData($id = null, Request $request)
+    public function changeData(Request $request, $id = null)
     {
         // If an id is provided, only admins may change another user's data.
         if ($id) {

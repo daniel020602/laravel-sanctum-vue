@@ -23,6 +23,22 @@ class UpdateResRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['sometimes', 'string', 'max:255'],
+            'email' => ['sometimes', 'string', 'email', 'max:255'],
+            'phone' => [
+                'sometimes',
+                'string',
+                'max:20',
+                // ensure phone is unique across reservations except for the current record
+                Rule::unique('reservations', 'phone')->ignore($this->route('res_admin') ?? $this->route('reservation') ?? $this->route('id')),
+            ],
+            'reservation_code' => [
+                'sometimes',
+                'string',
+                'max:50',
+                // Determine the route parameter name used for this resource and ignore it for unique check
+                Rule::unique('reservations', 'reservation_code')->ignore($this->route('res_admin') ?? $this->route('reservation') ?? $this->route('id')),
+            ],
             'date' => ['sometimes', 'date'],
             'time' => ['sometimes', 'date_format:H:i'],
             'table_id' => [

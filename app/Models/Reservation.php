@@ -15,7 +15,17 @@ class Reservation extends Model
         'phone',
         'date',
         'time',
-        'table_id'
+        'table_id',
+        'is_confirmed',
+    ];
+
+    /**
+     * Attribute casting
+     *
+     * @var array
+     */
+    protected $casts = [
+        'is_confirmed' => 'boolean',
     ];
 
 

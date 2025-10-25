@@ -8,9 +8,20 @@
           <p>Rendelés azonosítója: <strong>{{ order?.id }}</strong></p>
           <p>Összeg: <strong>{{ order?.total }} Ft</strong></p>
           <p>Állapot: <strong>{{ order?.status }}</strong></p>
+            <div v-if="order?.items && order.items.length">
+                <h2>Rendelés részletei:</h2>
+                <ul>
+                <li v-for="item in order.items" :key="item.id">
+                    {{ item.name }} x {{ item.quantity }} - {{ item.price * item.quantity }} Ft
+                </li>
+                </ul>
+            </div>
+            <h3>Összesen: {{ order?.total }} Ft</h3>
+            <h3 v-if="order?.is_paid">fizetve</h3>
         </div>
-        <RouterLink :to="{ name: 'user-change-order', params: { id: order?.id } }" class="text-blue-500 hover:underline">Vissza az ételrendelésekhez</RouterLink>
-        <button @click="deleteOrder" class="text-red-500 hover:underline">Rendelés törlése</button>
+        <RouterLink v-if="!order?.is_paid" :to="{ name: 'user-change-order', params: { id: order?.id } }" class="text-blue-500 hover:underline">Vissza az ételrendelésekhez</RouterLink>
+        <button v-if="!order?.is_paid" @click="deleteOrder" class="text-red-500 hover:underline">Rendelés törlése</button>
+        <RouterLink v-if="!order?.is_paid" :to="{ name: 'pay-for-order', params: { id: order?.id } }" class="text-green-500 hover:underline">Fizetés</RouterLink>
     </div>
 </template>
 
@@ -36,6 +47,7 @@ async function deleteOrder() {
         console.error('Failed to delete order', err);
     }
 }
+
 
 async function load() {
     const id = route.params.id;

@@ -182,4 +182,31 @@ class WeeksController extends Controller
             'message' => 'Week and related menus deleted successfully.'
         ], 200);
     }
+    public function nextWeek()
+    {
+        $user = request()->user();
+        $currentWeekNumber = now()->weekOfYear;
+        $nextWeekNumber = $currentWeekNumber + 1;
+        $currentYear = now()->year;
+        // If next week exceeds 52, roll over to week 1 of next year
+        if ($nextWeekNumber > 52) {
+            $nextWeekNumber = 1;
+            $currentYear += 1;
+        }
+
+        $week = Week::where('week_number', $nextWeekNumber)
+                    ->where('year', $currentYear)
+                    ->first();
+
+        if (! $week) {
+            return response()->json(['message' => 'Next week not found'], 404);
+        }
+
+        $weekMenus = WeekMenu::where('week_id', $week->id)->get();
+
+        return response()->json([
+            'week' => $week,
+            'menus' => $weekMenus
+        ]);
+    }
 }

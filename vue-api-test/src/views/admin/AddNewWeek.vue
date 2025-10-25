@@ -115,13 +115,16 @@ function getDateOfISOWeek(week, year) {
     if (!Number.isFinite(week) || !Number.isFinite(year) || week < 1 || week > 53) {
         return null;
     }
-    const simple = new Date(year, 0, 1 + (week - 1) * 7);
-    if (isNaN(simple.getTime())) return null;
-    const dow = simple.getDay();
-    const ISOweekStart = new Date(simple);
-    // adjust to Monday
-    const dayDiff = (dow <= 1) ? (1 - dow) : (8 - dow);
-    ISOweekStart.setDate(simple.getDate() + dayDiff);
+    // ISO week calculation: find Monday of week 1 (week that contains Jan 4), then add (week-1)*7 days
+    const jan4 = new Date(year, 0, 4);
+    if (isNaN(jan4.getTime())) return null;
+    let jan4Dow = jan4.getDay(); // 0 (Sun) .. 6 (Sat)
+    // treat Sunday as 7 to align with ISO (Mon=1..Sun=7)
+    if (jan4Dow === 0) jan4Dow = 7;
+    const week1Monday = new Date(jan4);
+    week1Monday.setDate(jan4.getDate() - (jan4Dow - 1));
+    const ISOweekStart = new Date(week1Monday);
+    ISOweekStart.setDate(week1Monday.getDate() + (week - 1) * 7);
     if (isNaN(ISOweekStart.getTime())) return null;
     return ISOweekStart;
 }

@@ -6,6 +6,7 @@ use App\Models\Menu;
 use App\Models\User;
 use App\Models\Week;
 use App\Models\WeekMenu;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -178,6 +179,68 @@ class WeeksControllerTest extends TestCase
 
 		$this->assertDatabaseMissing('weeks', ['id' => $week->id]);
 		$this->assertDatabaseMissing('week_menus', ['week_id' => $week->id]);
+	}
+
+	public function test_nextWeek_returns_404_when_missing()
+	{
+		$user = User::factory()->create();
+		$this->actingAs($user, 'sanctum');
+
+		// Ensure no week exists for next week
+		$resp = $this->getJson('/api/weeks/next-week');
+		$resp->assertStatus(404)->assertJson(['message' => 'Next week not found']);
+	}
+
+	public function test_nextWeek_returns_week_and_menus()
+	{
+		$user = User::factory()->create();
+		$this->actingAs($user, 'sanctum');
+
+		$current = Carbon::now();
+		$nextWeekNumber = $current->weekOfYear + 1;
+		$year = $current->year;
+		if ($nextWeekNumber > 52) {
+			$nextWeekNumber = 1;
+			$year += 1;
+		}
+
+		$week = Week::factory()->create(['week_number' => $nextWeekNumber, 'year' => $year]);
+		WeekMenu::factory()->count(3)->create(['week_id' => $week->id]);
+
+		$resp = $this->getJson('/api/weeks/next-week');
+		$resp->assertStatus(200)
+			->assertJsonStructure(['week', 'menus']);
+		$this->assertCount(3, $resp->json('menus'));
+	}
+
+	public function test_nextWeek_rolls_over_year_when_week_exceeds_52()
+	{
+		// Force the current date into ISO week 52 so nextWeekNumber becomes 53 (>52)
+		$now = Carbon::now();
+		$forced = (clone $now)->setISODate((int) $now->year, 52);
+		Carbon::setTestNow($forced);
+
+		$user = User::factory()->create();
+		$this->actingAs($user, 'sanctum');
+
+		// compute expected rolled values
+		$current = Carbon::now();
+		$nextWeekNumber = $current->weekOfYear + 1; // will be 53
+		$year = $current->year;
+		if ($nextWeekNumber > 52) {
+			$nextWeekNumber = 1;
+			$year += 1;
+		}
+
+		$week = Week::factory()->create(['week_number' => $nextWeekNumber, 'year' => $year]);
+		WeekMenu::factory()->count(2)->create(['week_id' => $week->id]);
+
+		$resp = $this->getJson('/api/weeks/next-week');
+		$resp->assertStatus(200)->assertJsonStructure(['week', 'menus']);
+		$this->assertEquals($nextWeekNumber, $resp->json('week.week_number'));
+		$this->assertEquals($year, $resp->json('week.year'));
+
+		Carbon::setTestNow();
 	}
 
 	public function test_store_fails_when_duplicate_menu_in_same_day()
