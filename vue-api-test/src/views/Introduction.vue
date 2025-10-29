@@ -5,7 +5,7 @@
             <p>Fedezze fel ínycsiklandó ételeinket és barátságos légkörünket!</p>
             <RouterLink class="block text-blue-500 hover:underline" :to="{ name: 'menu' }">Tekintse meg menünket</RouterLink>
             <br/>
-            <RouterLink v-if="subscription" class="block text-blue-500 hover:underline" :to="{ name: 'subscription-edit', params: { id: subscription.id } }">Heti Menü módosítása</RouterLink>
+            <RouterLink v-if="subscription" class="block text-blue-500 hover:underline" :to="{ name: 'subscription-edit'}">Heti Menü módosítása</RouterLink>
             <RouterLink v-else class="block text-blue-500 hover:underline" :to="{ name: 'subscription' }">Feliratkozás a heti menüre</RouterLink>
             <br/>
             <RouterLink class="block text-blue-500 hover:underline" :to="{ name: 'new-reservation' }">asztalfoglalás</RouterLink>

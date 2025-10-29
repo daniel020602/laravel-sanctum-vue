@@ -97,16 +97,10 @@ export const useWeeksStore = defineStore("weeks", {
     },
     async fetchNextWeek() {
       this.isLoading = true;
-      const authStore = useAuthStore();
-      const token = authStore.token;
-      console.log(token);
+
 
       try {
-        const response = await fetch("/api/weeks/next-week", {
-          headers: {
-            Authorization: 'Bearer ' + localStorage.getItem('token'),
-          },
-        });
+        const response = await fetch("/api/weeks/next-week");
 
         const text = await response.text();
         let data;

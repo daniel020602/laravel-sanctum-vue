@@ -17,7 +17,7 @@
             <p>Telefonszám: {{ reservation.phone }}</p>
             <p>Email: {{ reservation.email }}</p>
             <p>Állapot: <span v-if="reservation.is_confirmed">Megerősítve</span><span v-else>Nincs megerősítve</span></p>
-            <RouterLink :to="{ name: 'modify-user-reservation', params: { id: reservation.id }, state: { reservation: reservation } }">Foglalás módosítása</RouterLink>
+            <RouterLink :to="{ name: 'modify-user-reservation' }">Foglalás módosítása</RouterLink>
         </div>
     </div>
 </template>

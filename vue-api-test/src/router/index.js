@@ -61,8 +61,6 @@ const publicRoutes = [
     path: '/reservations/modify-user/:id',
     name: 'modify-user-reservation',
     component: UserModifyReservation,
-    // pass reservationData from navigation state (history.state)
-    props: (route) => ({ reservationData: (route && route.state && route.state.reservation) ? route.state.reservation : null })
   }
 ]
 
@@ -73,7 +71,8 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach(async (to, from) => {
+// exported guard for testing
+export async function authGuard (to, from) {
   const authStore = useAuthStore()
   await authStore.getUser()
   if (authStore.user && to.meta.guest) {
@@ -85,7 +84,9 @@ router.beforeEach(async (to, from) => {
   if (to.meta.requiresAdmin && (!authStore.user || !authStore.user.is_admin)) {
     return { name: 'home' }
   }
-})
+}
+
+router.beforeEach(authGuard)
 
 export default router
 
